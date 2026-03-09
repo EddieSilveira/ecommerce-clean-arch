@@ -1,8 +1,9 @@
 import { Money } from "../../shared/value-objects/money.vo";
+import { UUID } from "../../shared/value-objects/uuid.vo";
 
 export class Product {
     private constructor(
-        private readonly id: string,
+        private readonly id: UUID,
         private name: string,
         private price: Money,
         private stock: number,
@@ -13,7 +14,7 @@ export class Product {
         if (props.stock < 0) throw new Error("Stock cannot be negative");
 
         return new Product(
-            crypto.randomUUID(),
+            UUID.create(crypto.randomUUID()),
             props.name,
             props.price,
             props.stock,
@@ -23,7 +24,7 @@ export class Product {
     getName(): string { return this.name; }
     getPrice(): Money { return this.price; }
     getStock(): number { return this.stock; }
-    getId(): string { return this.id; }
+    getId(): UUID { return this.id; }
     increaseStock(quantity: number): void {
         if (quantity <= 0) {
             throw new Error("Quantity must be greater than zero!");

@@ -1,9 +1,8 @@
 import { Email } from "../../shared/value-objects/email.vo";
-
-
+import { UUID } from "../../shared/value-objects/uuid.vo";
 export class User {
   private constructor(
-    private readonly id: string,
+    private readonly id: UUID,
     private name: string,
     private email: Email
   ) {}
@@ -16,13 +15,13 @@ export class User {
     const email = Email.create(props.email);
 
     return new User(
-      crypto.randomUUID(),
+      UUID.create(crypto.randomUUID()),
       props.name.trim(),
       email
     );
   }
 
-  getId(): string {
+  getId(): UUID {
     return this.id;
   }
 

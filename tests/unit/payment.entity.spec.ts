@@ -1,9 +1,10 @@
 import { Payment, PaymentStatus } from "../../apps/api/src/domain/payment/payment.entity";
 import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
+import { UUID } from "../../apps/api/src/domain/shared/value-objects/uuid.vo";
 
 describe("Payment", () => {
   const validProps = () => ({
-    orderId: "order-123",
+    orderId: UUID.create(),
     amount: Money.create(199.8),
   });
 
@@ -23,10 +24,8 @@ describe("Payment", () => {
       expect(payment.getId()).toBeDefined();
     });
 
-    it("should throw when orderId is empty", () => {
-      expect(() => Payment.create({ ...validProps(), orderId: "" })).toThrow(
-        "OrderId cannot be empty"
-      );
+    it("should throw when orderId is invalid", () => {
+      expect(() => UUID.create("")).toThrow("Invalid UUID");
     });
 
     it("should throw when amount is zero", () => {
