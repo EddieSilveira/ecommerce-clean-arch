@@ -137,29 +137,29 @@ describe("Order", () => {
     });
   });
 
-  // describe("domain events", () => {
-  //   it("should emit OrderPlacedEvent when confirmed", () => {
-  //     const order = Order.create(validProps());
-  //     order.addItem(itemProps());
-  //     order.confirm();
-  //     const events = order.pullDomainEvents();
-  //     expect(events).toHaveLength(1);
-  //     expect(events[0].constructor.name).toBe("OrderPlacedEvent");
-  //   });
+  describe("domain events", () => {
+    it("should emit OrderPlacedEvent when confirmed", () => {
+      const order = Order.create(validProps());
+      order.addItem(itemProps());
+      order.confirm();
+      const events = order.pullDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]?.constructor.name).toBe("OrderPlacedEvent");
+    });
 
-  //   it("should emit OrderCancelledEvent when cancelled", () => {
-  //     const order = Order.create(validProps());
-  //     order.cancel();
-  //     const events = order.pullDomainEvents();
-  //     expect(events).toHaveLength(1);
-  //     expect(events[0].constructor.name).toBe("OrderCancelledEvent");
-  //   });
+    it("should emit OrderCancelledEvent when cancelled", () => {
+      const order = Order.create(validProps());
+      order.cancel();
+      const events = order.pullDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]?.constructor.name).toBe("OrderCancelledEvent");
+    });
 
-  //   it("should clear events after pulling", () => {
-  //     const order = Order.create(validProps());
-  //     order.cancel();
-  //     order.pullDomainEvents();
-  //     expect(order.pullDomainEvents()).toHaveLength(0);
-  //   });
-  // });
+    it("should clear events after pulling", () => {
+      const order = Order.create(validProps());
+      order.cancel();
+      order.pullDomainEvents();
+      expect(order.pullDomainEvents()).toHaveLength(0);
+    });
+  });
 });
