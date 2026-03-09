@@ -14,7 +14,7 @@ export class Product {
         if (props.stock < 0) throw new Error("Stock cannot be negative");
 
         return new Product(
-            UUID.create(crypto.randomUUID()),
+            UUID.create(),
             props.name,
             props.price,
             props.stock,
@@ -32,15 +32,8 @@ export class Product {
         this.stock += quantity;
     }
     decreaseStock(quantity: number): void {
-        if (!this.isAvailable()) {
-            throw new Error("Insufficient stock");
-        }
-        if(quantity > this.stock){
-            throw new Error("Insufficient stock");
-        }
-        if(quantity <= 0){
-            throw new Error("Quantity must be greater than zero");
-        }
+        if (quantity <= 0) throw new Error("Quantity must be greater than zero");
+        if (quantity > this.stock) throw new Error("Insufficient stock");
         this.stock -= quantity;
     }
     isAvailable(): boolean {

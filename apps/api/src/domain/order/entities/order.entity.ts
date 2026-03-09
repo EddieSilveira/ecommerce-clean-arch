@@ -14,7 +14,7 @@ export enum OrderStatus {
 export class Order {
     private domainEvents: DomainEvent[] = [];
 
-    constructor(
+    private constructor(
         private readonly id: UUID,
         private userId: UUID,
         private items: OrderItem[],
@@ -23,7 +23,6 @@ export class Order {
     ) { }
 
     static create(props: { userId: UUID }) {
-        if (!props.userId) throw new Error("")
         return new Order(
             UUID.create(),
             props.userId,

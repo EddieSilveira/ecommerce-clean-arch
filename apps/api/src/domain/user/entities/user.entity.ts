@@ -15,7 +15,7 @@ export class User {
     const email = Email.create(props.email);
 
     return new User(
-      UUID.create(crypto.randomUUID()),
+      UUID.create(),
       props.name.trim(),
       email
     );
@@ -31,9 +31,5 @@ export class User {
 
   getEmail(): string {
     return this.email.getValue();
-  }
-
-  getEmailVO(): Email {
-    return this.email;
   }
 }

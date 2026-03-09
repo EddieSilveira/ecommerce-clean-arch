@@ -25,6 +25,7 @@ export class Payment {
         );
     }
     getId(): UUID { return this.id }
+    getOrderId(): UUID { return this.orderId }
     getStatus(): PaymentStatus { return this.status }
     getAmount(): Money { return this.amount }
     approve() {

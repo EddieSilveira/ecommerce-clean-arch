@@ -2,7 +2,7 @@ import { Money } from "../../shared/value-objects/money.vo";
 import { UUID } from "../../shared/value-objects/uuid.vo"
 
 export class OrderItem {
-    constructor(
+    private constructor(
         private readonly id: UUID,
         private productId: UUID,
         private productName: string,
@@ -28,6 +28,7 @@ export class OrderItem {
         )
     }
 
+    getId(): UUID { return this.id };
     getProductId(): UUID { return this.productId };
     getQuantity(): number { return this.quantity };
     getProductName(): string { return this.productName };
