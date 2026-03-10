@@ -4,12 +4,16 @@ export class User {
   private constructor(
     private readonly id: UUID,
     private name: string,
-    private email: Email
-  ) {}
+    private email: Email,
+    private passwordHash: string
+  ) { }
 
-  static create(props: { name: string; email: string }): User {
+  static create(props: { name: string; email: string; passwordHash: string }): User {
     if (!props.name || !props.name.trim()) {
       throw new Error("User name cannot be empty");
+    }
+    if (!props.passwordHash) {
+      throw new Error("Password hash cannot be empty");
     }
 
     const email = Email.create(props.email);
@@ -17,8 +21,23 @@ export class User {
     return new User(
       UUID.create(),
       props.name.trim(),
-      email
+      email,
+      props.passwordHash
     );
+  }
+
+  update(props: { name?: string; email?: string, passwordHash?: string }): void {
+    if (props.name !== undefined) {
+      if (!props.name.trim()) throw new Error("User name cannot be empty");
+      this.name = props.name.trim();
+    }
+    if (props.email !== undefined) {
+      this.email = Email.create(props.email);
+    }
+
+    if (props.passwordHash !== undefined) {
+      this.passwordHash = props.passwordHash;
+    }
   }
 
   getId(): UUID {
@@ -31,5 +50,9 @@ export class User {
 
   getEmail(): string {
     return this.email.getValue();
+  }
+
+  getPasswordHash(): string {
+    return this.passwordHash;
   }
 }

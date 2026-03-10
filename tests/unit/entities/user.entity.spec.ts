@@ -5,6 +5,7 @@ describe("User", () => {
   const validProps = () => ({
     name: "John Doe",
     email: "johndoe@email.com",
+    passwordHash: "hashed_password",
   });
 
   describe("create", () => {
