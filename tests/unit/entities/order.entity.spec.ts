@@ -1,6 +1,6 @@
-import { Order, OrderStatus } from "../../apps/api/src/domain/order/entities/order.entity";
-import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
-import { UUID } from "../../apps/api/src/domain/shared/value-objects/uuid.vo";
+import { Order, OrderStatus } from "@domain/order/entities/order.entity";
+import { Money } from "@domain/shared/value-objects/money.vo";
+import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 
 describe("Order", () => {

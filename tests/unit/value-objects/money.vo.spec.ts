@@ -1,4 +1,4 @@
-import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
+import { Money } from "@domain/shared/value-objects/money.vo";
 
 describe("Money", () => {
   it("should create a valid money", () => {

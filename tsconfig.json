@@ -3,6 +3,11 @@
     // File Layout
     "rootDir": "./",
     "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@domain/*": ["apps/api/src/domain/*"],
+      "@application/*": ["apps/api/src/application/*"]
+    },
 
     // Environment Settings
     "module": "commonjs",

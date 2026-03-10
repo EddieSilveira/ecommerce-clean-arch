@@ -1,6 +1,7 @@
-import { OrderItem } from "../../apps/api/src/domain/order/entities/order-item.entity";
-import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
-import { UUID } from "../../apps/api/src/domain/shared/value-objects/uuid.vo";
+import { OrderItem } from "@domain/order/entities/order-item.entity";
+import { Money } from "@domain/shared/value-objects/money.vo";
+import { UUID } from "@domain/shared/value-objects/uuid.vo";
+
 
 describe("OrderItem", () => {
   const productId = UUID.create();

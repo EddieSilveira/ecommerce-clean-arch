@@ -1,6 +1,6 @@
-import { Payment, PaymentStatus } from "../../apps/api/src/domain/payment/payment.entity";
-import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
-import { UUID } from "../../apps/api/src/domain/shared/value-objects/uuid.vo";
+import { Payment, PaymentStatus } from "@domain/payment/payment.entity";
+import { Money } from "@domain/shared/value-objects/money.vo";
+import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 describe("Payment", () => {
   const validProps = () => ({

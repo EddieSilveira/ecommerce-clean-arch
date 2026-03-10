@@ -1,4 +1,4 @@
-import { User } from "../../apps/api/src/domain/user/entities/user.entity";
+import { User } from "@domain/user/entities/user.entity";
 
 
 describe("User", () => {

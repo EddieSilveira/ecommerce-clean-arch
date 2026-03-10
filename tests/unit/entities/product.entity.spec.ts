@@ -1,5 +1,5 @@
-import { Product } from "../../apps/api/src/domain/product/entities/product.entity";
-import { Money } from "../../apps/api/src/domain/shared/value-objects/money.vo";
+import { Product } from "@domain/product/entities/product.entity";
+import { Money } from "@domain/shared/value-objects/money.vo";
 
 describe("Product", () => {
   const validProps = () => ({
