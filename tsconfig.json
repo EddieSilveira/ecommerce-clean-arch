@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@domain/*": ["apps/api/src/domain/*"],
-      "@application/*": ["apps/api/src/application/*"]
+      "@application/*": ["apps/api/src/application/*"],
+      "@helpers/*": ["tests/helpers/*"]
     },
 
     // Environment Settings
