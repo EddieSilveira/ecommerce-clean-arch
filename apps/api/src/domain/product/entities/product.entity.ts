@@ -21,6 +21,21 @@ export class Product {
         );
     }
 
+    update(props: { name?: string; price?: Money; stock?: number }): void {
+        if (props.name !== undefined) {
+            if (!props.name.trim()) throw new Error("Product name cannot be empty");
+            this.name = props.name.trim();
+        }
+        if (props.price !== undefined) {
+            this.price = props.price;
+        }
+
+        if (props.stock !== undefined) {
+            if (props.stock < 0) throw new Error("Product stock cannot be negative");
+            this.stock = props.stock;
+        }
+    }
+
     getName(): string { return this.name; }
     getPrice(): Money { return this.price; }
     getStock(): number { return this.stock; }

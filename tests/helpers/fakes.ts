@@ -22,7 +22,12 @@ export function fakeUserRepository(users: User[] = []): IUserRepository {
 export function fakeProductRepository(products: Product[] = []): IProductRepository {
   return {
     findById: async (id: UUID) => products.find(p => p.getId().equals(id)) ?? null,
+    findAll: async () => [...products],
     save: async (product: Product) => { products.push(product); },
+    delete: async (id: UUID) => {
+      const index = products.findIndex(p => p.getId().equals(id));
+      if (index !== -1) products.splice(index, 1);
+    }
   };
 }
 
