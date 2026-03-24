@@ -1,6 +1,9 @@
 import { Email } from "../../shared/value-objects/email.vo";
 import { UUID } from "../../shared/value-objects/uuid.vo";
 export class User {
+  private resetToken?: string | undefined;
+  private resetTokenExpiresAt?: Date | undefined;
+
   private constructor(
     private readonly id: UUID,
     private name: string,
@@ -54,5 +57,23 @@ export class User {
 
   getPasswordHash(): string {
     return this.passwordHash;
+  }
+
+  setResetToken(token: string, expiresAt: Date): void {
+    this.resetToken = token;
+    this.resetTokenExpiresAt = expiresAt;
+  }
+
+  clearResetToken(): void {
+    this.resetToken = undefined;
+    this.resetTokenExpiresAt = undefined;
+  }
+
+  getResetToken(): string | undefined {
+    return this.resetToken;
+  }
+
+  getResetTokenExpiresAt(): Date | undefined {
+    return this.resetTokenExpiresAt;
   }
 }
