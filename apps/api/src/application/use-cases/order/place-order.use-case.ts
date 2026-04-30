@@ -49,7 +49,6 @@ export class PlaceOrderUseCase {
       await this.productRepository.save(product);
     }
 
-    order.confirm();
     await this.orderRepository.save(order);
 
     return {

@@ -1,4 +1,4 @@
-import { PlaceOrderUseCase } from "@application/use-cases/place-order/place-order.use-case";
+import { PlaceOrderUseCase } from "@application/use-cases/order/place-order.use-case";
 import { IOrderRepository } from "@application/ports/order.repository";
 import { IProductRepository } from "@application/ports/product.repository";
 import { IUserRepository } from "@application/ports/user.repository";
@@ -8,7 +8,7 @@ import { User } from "@domain/user/entities/user.entity";
 import { Money } from "@domain/shared/value-objects/money.vo";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
-const makeUser = () => User.create({ name: "John Doe", email: "john@example.com" });
+const makeUser = () => User.create({ name: "John Doe", email: "john@example.com", passwordHash: "hashed_password_123" });
 const makeProduct = (stock = 10) =>
   Product.create({ name: "T-Shirt", price: Money.create(50), stock });
 
@@ -31,13 +31,14 @@ function makeRepositories(user: User, product: Product) {
   const orderRepository: IOrderRepository = {
     save: async (order: Order) => { savedOrders.push(order); },
     findById: async () => null,
+    findByUserId: async () => [],
   };
 
   return { userRepository, productRepository, orderRepository, savedOrders, savedProducts };
 }
 
 describe("PlaceOrderUseCase", () => {
-  it("should place an order and decrease product stock", async () => {
+  it("should place an order in PENDING status and decrease product stock", async () => {
     const user = makeUser();
     const product = makeProduct(10);
     const { userRepository, productRepository, orderRepository, savedOrders } =
@@ -54,6 +55,7 @@ describe("PlaceOrderUseCase", () => {
     expect(output.total).toBe(100); // 50 * 2
     expect(product.getStock()).toBe(8); // 10 - 2
     expect(savedOrders).toHaveLength(1);
+    expect(savedOrders[0]!.getStatus()).toBe("PENDING");
   });
 
   it("should throw if user is not found", async () => {

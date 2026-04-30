@@ -33,6 +33,7 @@ export class Order {
     }
 
     getId(): UUID { return this.id };
+    getUserId(): UUID { return this.userId };
     getStatus(): OrderStatus { return this.status };
     addItem(props: {
         productId: UUID,
