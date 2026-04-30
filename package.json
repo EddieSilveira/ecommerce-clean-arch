@@ -13,11 +13,16 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testMatch": ["**/tests/unit/**/*.ts"],
+    "testMatch": [
+      "**/tests/unit/**/*.ts"
+    ],
     "moduleNameMapper": {
       "^@domain/(.*)$": "<rootDir>/apps/api/src/domain/$1",
       "^@application/(.*)$": "<rootDir>/apps/api/src/application/$1",
       "^@helpers/(.*)$": "<rootDir>/tests/helpers/$1"
     }
+  },
+  "dependencies": {
+    "jest-util": "^30.3.0"
   }
 }
