@@ -1,11 +1,13 @@
 import { IHasher } from "@application/ports/hasher";
 import { IOrderRepository } from "@application/ports/order.repository";
+import { IPaymentRepository } from "@application/ports/payment.repository";
 import { IProductRepository } from "@application/ports/product.repository";
 import { IUserRepository } from "@application/ports/user.repository";
 import { ITokenProvider } from "@application/ports/token-provider";
 import { ITokenGenerator } from "@application/ports/token-generator";
 import { IEmailNotifier } from "@application/ports/email-notifier";
 import { Order } from "@domain/order/entities/order.entity";
+import { Payment } from "@domain/payment/payment.entity";
 import { Product } from "@domain/product/entities/product.entity";
 import { User } from "@domain/user/entities/user.entity";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
@@ -31,18 +33,39 @@ export function fakeProductRepository(products: Product[] = []): IProductReposit
   return {
     findById: async (id: UUID) => products.find(p => p.getId().equals(id)) ?? null,
     findAll: async () => [...products],
-    save: async (product: Product) => { products.push(product); },
+    save: async (product: Product) => {
+      const index = products.findIndex(p => p.getId().equals(product.getId()));
+      if (index !== -1) products[index] = product;
+      else products.push(product);
+    },
     delete: async (id: UUID) => {
       const index = products.findIndex(p => p.getId().equals(id));
       if (index !== -1) products.splice(index, 1);
-    }
+    },
   };
 }
 
 export function fakeOrderRepository(orders: Order[] = []): IOrderRepository {
   return {
     findById: async (id: UUID) => orders.find(o => o.getId().equals(id)) ?? null,
-    save: async (order: Order) => { orders.push(order); },
+    findByUserId: async (userId: UUID) => orders.filter(o => o.getUserId().equals(userId)),
+    save: async (order: Order) => {
+      const index = orders.findIndex(o => o.getId().equals(order.getId()));
+      if (index !== -1) orders[index] = order;
+      else orders.push(order);
+    },
+  };
+}
+
+export function fakePaymentRepository(payments: Payment[] = []): IPaymentRepository {
+  return {
+    findById: async (id: UUID) => payments.find(p => p.getId().equals(id)) ?? null,
+    findByOrderId: async (orderId: UUID) => payments.find(p => p.getOrderId().equals(orderId)) ?? null,
+    save: async (payment: Payment) => {
+      const index = payments.findIndex(p => p.getId().equals(payment.getId()));
+      if (index !== -1) payments[index] = payment;
+      else payments.push(payment);
+    },
   };
 }
 
