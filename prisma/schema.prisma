@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  String    @id
+  name                String
+  email               String    @unique
+  passwordHash        String
+  resetToken          String?
+  resetTokenExpiresAt DateTime?
+  orders              Order[]
+}
+
+model Product {
+  id    String  @id
+  name  String
+  price Decimal
+  stock Int
+}
+
+model Order {
+  id      String      @id
+  userId  String
+  status  OrderStatus @default(PENDING)
+  total   Decimal
+  user    User        @relation(fields: [userId], references: [id])
+  items   OrderItem[]
+  payment Payment?
+}
+
+model OrderItem {
+  id          String  @id
+  orderId     String
+  productId   String
+  productName String
+  unitPrice   Decimal
+  quantity    Int
+  subtotal    Decimal
+  order       Order   @relation(fields: [orderId], references: [id])
+}
+
+model Payment {
+  id      String        @id
+  orderId String        @unique
+  amount  Decimal
+  status  PaymentStatus @default(PENDING)
+  order   Order         @relation(fields: [orderId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
