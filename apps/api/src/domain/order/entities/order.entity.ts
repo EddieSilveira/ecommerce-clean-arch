@@ -32,6 +32,22 @@ export class Order {
         )
     }
 
+    static reconstruct(props: {
+        id: string;
+        userId: string;
+        items: OrderItem[];
+        status: OrderStatus;
+        total: Money;
+    }): Order {
+        return new Order(
+            UUID.create(props.id),
+            UUID.create(props.userId),
+            props.items,
+            props.status,
+            props.total
+        );
+    }
+
     getId(): UUID { return this.id };
     getUserId(): UUID { return this.userId };
     getStatus(): OrderStatus { return this.status };

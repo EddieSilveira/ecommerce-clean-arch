@@ -28,6 +28,24 @@ export class OrderItem {
         )
     }
 
+    static reconstruct(props: {
+        id: string;
+        productId: string;
+        productName: string;
+        unitPrice: Money;
+        quantity: number;
+        subtotal: Money;
+    }): OrderItem {
+        return new OrderItem(
+            UUID.create(props.id),
+            UUID.create(props.productId),
+            props.productName,
+            props.unitPrice,
+            props.quantity,
+            props.subtotal
+        );
+    }
+
     getId(): UUID { return this.id };
     getProductId(): UUID { return this.productId };
     getQuantity(): number { return this.quantity };

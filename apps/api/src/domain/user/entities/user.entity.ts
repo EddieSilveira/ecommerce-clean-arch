@@ -29,6 +29,21 @@ export class User {
     );
   }
 
+  static reconstruct(props: {
+    id: string;
+    name: string;
+    email: string;
+    passwordHash: string;
+    resetToken?: string | null;
+    resetTokenExpiresAt?: Date | null;
+  }): User {
+    const user = new User(UUID.create(props.id), props.name, Email.create(props.email), props.passwordHash);
+    if (props.resetToken && props.resetTokenExpiresAt) {
+      user.setResetToken(props.resetToken, props.resetTokenExpiresAt);
+    }
+    return user;
+  }
+
   update(props: { name?: string; email?: string, passwordHash?: string }): void {
     if (props.name !== undefined) {
       if (!props.name.trim()) throw new Error("User name cannot be empty");

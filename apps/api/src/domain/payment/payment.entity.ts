@@ -24,6 +24,20 @@ export class Payment {
             PaymentStatus.PENDING
         );
     }
+    static reconstruct(props: {
+        id: string;
+        orderId: string;
+        amount: Money;
+        status: PaymentStatus;
+    }): Payment {
+        return new Payment(
+            UUID.create(props.id),
+            UUID.create(props.orderId),
+            props.amount,
+            props.status
+        );
+    }
+
     getId(): UUID { return this.id }
     getOrderId(): UUID { return this.orderId }
     getStatus(): PaymentStatus { return this.status }

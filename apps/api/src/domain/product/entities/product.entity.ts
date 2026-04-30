@@ -21,6 +21,10 @@ export class Product {
         );
     }
 
+    static reconstruct(props: { id: string; name: string; price: Money; stock: number }): Product {
+        return new Product(UUID.create(props.id), props.name, props.price, props.stock);
+    }
+
     update(props: { name?: string; price?: Money; stock?: number }): void {
         if (props.name !== undefined) {
             if (!props.name.trim()) throw new Error("Product name cannot be empty");
