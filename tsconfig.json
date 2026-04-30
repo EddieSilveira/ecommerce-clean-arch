@@ -1,4 +1,7 @@
 {
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
     // File Layout
     "rootDir": "./",
@@ -7,7 +10,9 @@
     "paths": {
       "@domain/*": ["apps/api/src/domain/*"],
       "@application/*": ["apps/api/src/application/*"],
-      "@helpers/*": ["tests/helpers/*"]
+      "@helpers/*": ["tests/helpers/*"],
+      "@infra/*": ["apps/api/src/infrastructure/*"],
+      "@http/*": ["apps/api/src/http/*"]
     },
 
     // Environment Settings

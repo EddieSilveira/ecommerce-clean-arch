@@ -4,13 +4,20 @@
   "scripts": {
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "ts-node -r tsconfig-paths/register -r dotenv/config apps/api/src/main.ts"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
+    "@types/nodemailer": "^8.0.0",
     "jest": "^29.7.0",
+    "prisma": "^7.8.0",
     "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
   },
   "jest": {
@@ -22,10 +29,22 @@
     "moduleNameMapper": {
       "^@domain/(.*)$": "<rootDir>/apps/api/src/domain/$1",
       "^@application/(.*)$": "<rootDir>/apps/api/src/application/$1",
-      "^@helpers/(.*)$": "<rootDir>/tests/helpers/$1"
+      "^@helpers/(.*)$": "<rootDir>/tests/helpers/$1",
+      "^@infra/(.*)$": "<rootDir>/apps/api/src/infrastructure/$1",
+      "^@http/(.*)$": "<rootDir>/apps/api/src/http/$1"
     }
   },
   "dependencies": {
-    "jest-util": "^30.3.0"
+    "@fastify/jwt": "^10.0.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@types/pg": "^8.20.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5",
+    "jest-util": "^30.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^8.0.7",
+    "pg": "^8.20.0"
   }
 }
