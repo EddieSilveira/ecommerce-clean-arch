@@ -1,50 +1,25 @@
 import { PlaceOrderUseCase } from "@application/use-cases/order/place-order.use-case";
-import { IOrderRepository } from "@application/ports/order.repository";
-import { IProductRepository } from "@application/ports/product.repository";
-import { IUserRepository } from "@application/ports/user.repository";
-import { Order } from "@domain/order/entities/order.entity";
+import { fakeOrderRepository, fakeProductRepository, fakeUserRepository } from "@helpers/fakes";
+import { Order, OrderStatus } from "@domain/order/entities/order.entity";
 import { Product } from "@domain/product/entities/product.entity";
 import { User } from "@domain/user/entities/user.entity";
 import { Money } from "@domain/shared/value-objects/money.vo";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 const makeUser = () => User.create({ name: "John Doe", email: "john@example.com", passwordHash: "hashed_password_123" });
-const makeProduct = (stock = 10) =>
-  Product.create({ name: "T-Shirt", price: Money.create(50), stock });
-
-function makeRepositories(user: User, product: Product) {
-  const savedOrders: Order[] = [];
-  const savedProducts: Product[] = [];
-
-  const userRepository: IUserRepository = {
-    findById: async (id: UUID) =>
-      user.getId().equals(id) ? user : null,
-    save: async () => {},
-  };
-
-  const productRepository: IProductRepository = {
-    findById: async (id: UUID) =>
-      product.getId().equals(id) ? product : null,
-    save: async (p: Product) => { savedProducts.push(p); },
-  };
-
-  const orderRepository: IOrderRepository = {
-    save: async (order: Order) => { savedOrders.push(order); },
-    findById: async () => null,
-    findByUserId: async () => [],
-  };
-
-  return { userRepository, productRepository, orderRepository, savedOrders, savedProducts };
-}
+const makeProduct = (stock = 10) => Product.create({ name: "T-Shirt", price: Money.create(50), stock });
 
 describe("PlaceOrderUseCase", () => {
   it("should place an order in PENDING status and decrease product stock", async () => {
     const user = makeUser();
     const product = makeProduct(10);
-    const { userRepository, productRepository, orderRepository, savedOrders } =
-      makeRepositories(user, product);
+    const orders: Order[] = [];
 
-    const useCase = new PlaceOrderUseCase(userRepository, productRepository, orderRepository);
+    const useCase = new PlaceOrderUseCase(
+      fakeUserRepository([user]),
+      fakeProductRepository([product]),
+      fakeOrderRepository(orders)
+    );
 
     const output = await useCase.execute({
       userId: user.getId().getValue(),
@@ -52,27 +27,23 @@ describe("PlaceOrderUseCase", () => {
     });
 
     expect(output.orderId).toBeDefined();
-    expect(output.total).toBe(100); // 50 * 2
-    expect(product.getStock()).toBe(8); // 10 - 2
-    expect(savedOrders).toHaveLength(1);
-    expect(savedOrders[0]!.getStatus()).toBe("PENDING");
+    expect(output.total).toBe(100);
+    expect(product.getStock()).toBe(8);
+    expect(orders).toHaveLength(1);
+    expect(orders[0]!.getStatus()).toBe(OrderStatus.PENDING);
   });
 
   it("should throw if user is not found", async () => {
-    const user = makeUser();
     const product = makeProduct();
-    const { productRepository, orderRepository } = makeRepositories(user, product);
-
-    const emptyUserRepository: IUserRepository = {
-      findById: async () => null,
-      save: async () => {},
-    };
-
-    const useCase = new PlaceOrderUseCase(emptyUserRepository, productRepository, orderRepository);
+    const useCase = new PlaceOrderUseCase(
+      fakeUserRepository(),
+      fakeProductRepository([product]),
+      fakeOrderRepository()
+    );
 
     await expect(
       useCase.execute({
-        userId: user.getId().getValue(),
+        userId: UUID.create().getValue(),
         items: [{ productId: product.getId().getValue(), quantity: 1 }],
       })
     ).rejects.toThrow("User not found");
@@ -80,20 +51,16 @@ describe("PlaceOrderUseCase", () => {
 
   it("should throw if product is not found", async () => {
     const user = makeUser();
-    const product = makeProduct();
-    const { userRepository, orderRepository } = makeRepositories(user, product);
-
-    const emptyProductRepository: IProductRepository = {
-      findById: async () => null,
-      save: async () => {},
-    };
-
-    const useCase = new PlaceOrderUseCase(userRepository, emptyProductRepository, orderRepository);
+    const useCase = new PlaceOrderUseCase(
+      fakeUserRepository([user]),
+      fakeProductRepository(),
+      fakeOrderRepository()
+    );
 
     await expect(
       useCase.execute({
         userId: user.getId().getValue(),
-        items: [{ productId: product.getId().getValue(), quantity: 1 }],
+        items: [{ productId: UUID.create().getValue(), quantity: 1 }],
       })
     ).rejects.toThrow("not found");
   });
@@ -101,9 +68,11 @@ describe("PlaceOrderUseCase", () => {
   it("should throw if product is out of stock", async () => {
     const user = makeUser();
     const product = makeProduct(0);
-    const { userRepository, productRepository, orderRepository } = makeRepositories(user, product);
-
-    const useCase = new PlaceOrderUseCase(userRepository, productRepository, orderRepository);
+    const useCase = new PlaceOrderUseCase(
+      fakeUserRepository([user]),
+      fakeProductRepository([product]),
+      fakeOrderRepository()
+    );
 
     await expect(
       useCase.execute({
@@ -116,9 +85,11 @@ describe("PlaceOrderUseCase", () => {
   it("should throw if quantity exceeds stock", async () => {
     const user = makeUser();
     const product = makeProduct(1);
-    const { userRepository, productRepository, orderRepository } = makeRepositories(user, product);
-
-    const useCase = new PlaceOrderUseCase(userRepository, productRepository, orderRepository);
+    const useCase = new PlaceOrderUseCase(
+      fakeUserRepository([user]),
+      fakeProductRepository([product]),
+      fakeOrderRepository()
+    );
 
     await expect(
       useCase.execute({
