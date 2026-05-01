@@ -63,7 +63,7 @@ async function main() {
   const placeOrder = new PlaceOrderUseCase(userRepo, productRepo, orderRepo);
   const getOrder = new GetOrderUseCase(orderRepo);
   const listOrders = new ListOrdersUseCase(orderRepo);
-  const cancelOrder = new CancelOrderUseCase(orderRepo);
+  const cancelOrder = new CancelOrderUseCase(orderRepo, productRepo);
   const processPayment = new ProcessPaymentUseCase(orderRepo, paymentRepo);
   const approvePayment = new ApprovePaymentUseCase(paymentRepo, orderRepo);
   const failPayment = new FailPaymentUseCase(paymentRepo, orderRepo);
