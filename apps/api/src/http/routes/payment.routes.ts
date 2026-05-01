@@ -11,20 +11,39 @@ export interface PaymentRouteOptions {
 }
 
 export async function paymentRoutes(app: FastifyInstance, options: PaymentRouteOptions) {
-  app.post("/payments", { preHandler: authenticate }, async (request, reply) => {
-    const { orderId, amount } = request.body as { orderId: string; amount: number };
+  app.post<{ Body: { orderId: string; amount: number } }>("/payments", {
+    preHandler: authenticate,
+    schema: {
+      description: "Process a payment for an order (requires auth)",
+      body: {
+        type: "object",
+        required: ["orderId", "amount"],
+        properties: {
+          orderId: { type: "string", format: "uuid" },
+          amount: { type: "number", minimum: 0.01 }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const { orderId, amount } = request.body;
     const output = await options.processPayment.execute({ orderId, amount });
     return reply.status(201).send(output);
   });
 
-  app.post("/payments/:id/approve", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.post<{ Params: { id: string } }>("/payments/:id/approve", {
+    preHandler: authenticate,
+    schema: { description: "Approve a pending payment (requires auth)" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     await options.approvePayment.execute({ paymentId: id });
     return reply.status(204).send();
   });
 
-  app.post("/payments/:id/fail", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.post<{ Params: { id: string } }>("/payments/:id/fail", {
+    preHandler: authenticate,
+    schema: { description: "Fail a pending payment (requires auth)" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     await options.failPayment.execute({ paymentId: id });
     return reply.status(204).send();
   });

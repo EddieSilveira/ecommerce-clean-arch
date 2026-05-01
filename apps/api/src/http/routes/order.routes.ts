@@ -13,27 +13,59 @@ export interface OrderRouteOptions {
 }
 
 export async function orderRoutes(app: FastifyInstance, options: OrderRouteOptions) {
-  app.post("/orders", { preHandler: authenticate }, async (request, reply) => {
+  app.post<{ Body: { items: { productId: string; quantity: number }[] } }>("/orders", {
+    preHandler: authenticate,
+    schema: {
+      description: "Place a new order (requires auth)",
+      body: {
+        type: "object",
+        required: ["items"],
+        properties: {
+          items: {
+            type: "array",
+            minItems: 1,
+            items: {
+              type: "object",
+              required: ["productId", "quantity"],
+              properties: {
+                productId: { type: "string", format: "uuid" },
+                quantity: { type: "integer", minimum: 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
     const { userId } = request.user;
-    const { items } = request.body as { items: { productId: string; quantity: number }[] };
+    const { items } = request.body;
     const output = await options.placeOrder.execute({ userId, items });
     return reply.status(201).send(output);
   });
 
-  app.get("/orders", { preHandler: authenticate }, async (request, reply) => {
+  app.get("/orders", {
+    preHandler: authenticate,
+    schema: { description: "List orders for the authenticated user" }
+  }, async (request, reply) => {
     const { userId } = request.user;
     const output = await options.listOrders.execute({ userId });
     return reply.status(200).send(output);
   });
 
-  app.get("/orders/:id", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.get<{ Params: { id: string } }>("/orders/:id", {
+    preHandler: authenticate,
+    schema: { description: "Get order by ID (requires auth)" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     const output = await options.getOrder.execute({ orderId: id });
     return reply.status(200).send(output);
   });
 
-  app.delete("/orders/:id", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.delete<{ Params: { id: string } }>("/orders/:id", {
+    preHandler: authenticate,
+    schema: { description: "Cancel an order (requires auth)" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     await options.cancelOrder.execute({ orderId: id });
     return reply.status(204).send();
   });

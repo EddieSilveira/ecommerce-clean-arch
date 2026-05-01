@@ -15,36 +15,71 @@ export interface ProductRouteOptions {
 }
 
 export async function productRoutes(app: FastifyInstance, options: ProductRouteOptions) {
-  app.get("/products", async (request, reply) => {
+  app.get("/products", {
+    schema: { description: "List all products" }
+  }, async (_request, reply) => {
     const output = await options.listProducts.execute();
     return reply.status(200).send(output);
   });
 
-  app.get("/products/:id", async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.get<{ Params: { id: string } }>("/products/:id", {
+    schema: { description: "Get product by ID" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     const output = await options.getProduct.execute({ productId: id });
     return reply.status(200).send(output);
   });
 
-  app.post("/products", { preHandler: authenticate }, async (request, reply) => {
-    const { name, price, stock } = request.body as { name: string; price: number; stock: number };
+  app.post<{ Body: { name: string; price: number; stock: number } }>("/products", {
+    preHandler: authenticate,
+    schema: {
+      description: "Create a product (requires auth)",
+      body: {
+        type: "object",
+        required: ["name", "price", "stock"],
+        properties: {
+          name: { type: "string", minLength: 1 },
+          price: { type: "number", minimum: 0 },
+          stock: { type: "integer", minimum: 0 }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const { name, price, stock } = request.body;
     const output = await options.createProduct.execute({ name, price, stock });
     return reply.status(201).send(output);
   });
 
-  app.put("/products/:id", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const body = request.body as { name?: string; price?: number; stock?: number };
+  app.put<{ Params: { id: string }; Body: { name?: string; price?: number; stock?: number } }>("/products/:id", {
+    preHandler: authenticate,
+    schema: {
+      description: "Update a product (requires auth)",
+      body: {
+        type: "object",
+        properties: {
+          name: { type: "string", minLength: 1 },
+          price: { type: "number", minimum: 0 },
+          stock: { type: "integer", minimum: 0 }
+        },
+        minProperties: 1
+      }
+    }
+  }, async (request, reply) => {
+    const { id } = request.params;
+    const { name, price, stock } = request.body;
     const input: { productId: string; name?: string; price?: number; stock?: number } = { productId: id };
-    if (body.name !== undefined) input.name = body.name;
-    if (body.price !== undefined) input.price = body.price;
-    if (body.stock !== undefined) input.stock = body.stock;
+    if (name !== undefined) input.name = name;
+    if (price !== undefined) input.price = price;
+    if (stock !== undefined) input.stock = stock;
     const output = await options.updateProduct.execute(input);
     return reply.status(200).send(output);
   });
 
-  app.delete("/products/:id", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  app.delete<{ Params: { id: string } }>("/products/:id", {
+    preHandler: authenticate,
+    schema: { description: "Delete a product (requires auth)" }
+  }, async (request, reply) => {
+    const { id } = request.params;
     await options.deleteProduct.execute({ productId: id });
     return reply.status(204).send();
   });
