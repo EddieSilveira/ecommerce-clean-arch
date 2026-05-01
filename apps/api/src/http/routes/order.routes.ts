@@ -57,7 +57,8 @@ export async function orderRoutes(app: FastifyInstance, options: OrderRouteOptio
     schema: { description: "Get order by ID (requires auth)" }
   }, async (request, reply) => {
     const { id } = request.params;
-    const output = await options.getOrder.execute({ orderId: id });
+    const actor = { id: request.user.userId, role: request.user.role };
+    const output = await options.getOrder.execute({ orderId: id, actor });
     return reply.status(200).send(output);
   });
 
@@ -66,7 +67,8 @@ export async function orderRoutes(app: FastifyInstance, options: OrderRouteOptio
     schema: { description: "Cancel an order (requires auth)" }
   }, async (request, reply) => {
     const { id } = request.params;
-    await options.cancelOrder.execute({ orderId: id });
+    const actor = { id: request.user.userId, role: request.user.role };
+    await options.cancelOrder.execute({ orderId: id, actor });
     return reply.status(204).send();
   });
 }

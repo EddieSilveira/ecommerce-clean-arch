@@ -4,7 +4,9 @@ import { Order, OrderStatus } from "@domain/order/entities/order.entity";
 import { Payment, PaymentStatus } from "@domain/payment/payment.entity";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
-const makePendingOrder = () => Order.create({ userId: UUID.create() });
+const ownerId = UUID.create();
+const makePendingOrder = () => Order.create({ userId: ownerId });
+const ownerActor = () => ({ id: ownerId.getValue(), role: 'CUSTOMER' as const });
 
 describe("ProcessPaymentUseCase", () => {
   it("should create a payment in PENDING status for a pending order", async () => {
@@ -12,7 +14,7 @@ describe("ProcessPaymentUseCase", () => {
     const payments: Payment[] = [];
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository(payments));
 
-    const output = await useCase.execute({ orderId: order.getId().getValue(), amount: 150 });
+    const output = await useCase.execute({ orderId: order.getId().getValue(), amount: 150, actor: ownerActor() });
 
     expect(output.paymentId).toBeDefined();
     expect(payments).toHaveLength(1);
@@ -24,7 +26,7 @@ describe("ProcessPaymentUseCase", () => {
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository(), fakePaymentRepository());
 
     await expect(
-      useCase.execute({ orderId: "00000000-0000-4000-8000-000000000001", amount: 100 })
+      useCase.execute({ orderId: "00000000-0000-4000-8000-000000000001", amount: 100, actor: ownerActor() })
     ).rejects.toThrow("Order not found");
   });
 
@@ -34,7 +36,7 @@ describe("ProcessPaymentUseCase", () => {
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
 
     await expect(
-      useCase.execute({ orderId: order.getId().getValue(), amount: 100 })
+      useCase.execute({ orderId: order.getId().getValue(), amount: 100, actor: ownerActor() })
     ).rejects.toThrow("Order is not pending");
   });
 
@@ -43,7 +45,20 @@ describe("ProcessPaymentUseCase", () => {
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
 
     await expect(
-      useCase.execute({ orderId: order.getId().getValue(), amount: 0 })
+      useCase.execute({ orderId: order.getId().getValue(), amount: 0, actor: ownerActor() })
     ).rejects.toThrow("Value cannot be negative");
+  });
+
+  it("should throw Unauthorized when actor does not own the order", async () => {
+    const order = makePendingOrder();
+    const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
+
+    await expect(
+      useCase.execute({
+        orderId: order.getId().getValue(),
+        amount: 150,
+        actor: { id: 'different-user-id', role: 'CUSTOMER' },
+      })
+    ).rejects.toThrow("Unauthorized");
   });
 });

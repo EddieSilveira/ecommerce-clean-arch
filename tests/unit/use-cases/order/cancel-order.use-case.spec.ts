@@ -3,15 +3,20 @@ import { fakeOrderRepository } from "@helpers/fakes";
 import { Order, OrderStatus } from "@domain/order/entities/order.entity";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
-const makeOrder = () => Order.create({ userId: UUID.create() });
+const makeOrder = () => {
+  const userId = UUID.create();
+  const order = Order.create({ userId });
+  const actor = { id: userId.getValue(), role: 'CUSTOMER' as const };
+  return { order, actor };
+};
 
 describe("CancelOrderUseCase", () => {
   it("should cancel a pending order", async () => {
-    const order = makeOrder();
+    const { order, actor } = makeOrder();
     const orders = [order];
     const useCase = new CancelOrderUseCase(fakeOrderRepository(orders));
 
-    await useCase.execute({ orderId: order.getId().getValue() });
+    await useCase.execute({ orderId: order.getId().getValue(), actor });
 
     expect(orders[0]!.getStatus()).toBe(OrderStatus.CANCELLED);
   });
@@ -20,17 +25,29 @@ describe("CancelOrderUseCase", () => {
     const useCase = new CancelOrderUseCase(fakeOrderRepository());
 
     await expect(
-      useCase.execute({ orderId: "00000000-0000-4000-8000-000000000001" })
+      useCase.execute({ orderId: "00000000-0000-4000-8000-000000000001", actor: { id: "some-id", role: 'CUSTOMER' } })
     ).rejects.toThrow("Order not found");
   });
 
   it("should throw if order is already cancelled", async () => {
-    const order = makeOrder();
+    const { order, actor } = makeOrder();
     order.cancel();
     const useCase = new CancelOrderUseCase(fakeOrderRepository([order]));
 
     await expect(
-      useCase.execute({ orderId: order.getId().getValue() })
+      useCase.execute({ orderId: order.getId().getValue(), actor })
     ).rejects.toThrow("Cannot cancel a cancelled order");
+  });
+
+  it("should throw Unauthorized when actor does not own the order", async () => {
+    const { order } = makeOrder();
+    const useCase = new CancelOrderUseCase(fakeOrderRepository([order]));
+
+    await expect(
+      useCase.execute({
+        orderId: order.getId().getValue(),
+        actor: { id: 'different-id', role: 'CUSTOMER' },
+      })
+    ).rejects.toThrow("Unauthorized");
   });
 });

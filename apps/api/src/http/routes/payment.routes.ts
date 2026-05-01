@@ -26,7 +26,8 @@ export async function paymentRoutes(app: FastifyInstance, options: PaymentRouteO
     }
   }, async (request, reply) => {
     const { orderId, amount } = request.body;
-    const output = await options.processPayment.execute({ orderId, amount });
+    const actor = { id: request.user.userId, role: request.user.role };
+    const output = await options.processPayment.execute({ orderId, amount, actor });
     return reply.status(201).send(output);
   });
 
