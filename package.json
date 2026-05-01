@@ -5,7 +5,8 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "dev": "ts-node -r tsconfig-paths/register -r dotenv/config apps/api/src/main.ts"
+    "dev": "ts-node -r tsconfig-paths/register -r dotenv/config apps/api/src/main.ts",
+    "test:integration": "DATABASE_URL=$DATABASE_URL_TEST jest --config jest.integration.config.js --runInBand"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
