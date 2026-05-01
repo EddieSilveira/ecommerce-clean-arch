@@ -48,4 +48,28 @@ describe("User", () => {
       expect(() => User.create({ ...validProps(), email: "user.name+tag@domain.co" })).not.toThrow();
     });
   });
+
+  describe("role", () => {
+    it("should default to CUSTOMER when role is not specified", () => {
+      const user = User.create(validProps());
+      expect(user.getRole()).toBe('CUSTOMER');
+    });
+
+    it("should accept ADMIN role", () => {
+      const user = User.create({ ...validProps(), role: 'ADMIN' });
+      expect(user.getRole()).toBe('ADMIN');
+    });
+
+    it("should preserve role through reconstruct", () => {
+      const original = User.create({ ...validProps(), role: 'ADMIN' });
+      const reconstructed = User.reconstruct({
+        id: original.getId().getValue(),
+        name: original.getName(),
+        email: original.getEmail(),
+        passwordHash: original.getPasswordHash(),
+        role: 'ADMIN',
+      });
+      expect(reconstructed.getRole()).toBe('ADMIN');
+    });
+  });
 });

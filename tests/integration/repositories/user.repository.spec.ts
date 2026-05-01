@@ -13,11 +13,12 @@ afterAll(async () => {
   await prismaTest.$disconnect();
 });
 
-async function makeUser(overrides?: Partial<{ name: string; email: string; passwordHash: string }>): Promise<User> {
+async function makeUser(overrides?: Partial<{ name: string; email: string; passwordHash: string; role: 'ADMIN' | 'CUSTOMER' }>): Promise<User> {
   const user = User.create({
     name: overrides?.name ?? "Alice",
     email: overrides?.email ?? "alice@example.com",
     passwordHash: overrides?.passwordHash ?? "hashed_password",
+    role: overrides?.role,
   });
   await repo.save(user);
   return user;
@@ -88,6 +89,20 @@ describe("UserPrismaRepository", () => {
       await repo.delete(user.getId());
       const found = await repo.findById(user.getId());
       expect(found).toBeNull();
+    });
+  });
+
+  describe("role", () => {
+    it("defaults to CUSTOMER when not specified", async () => {
+      const user = await makeUser();
+      const found = await repo.findById(user.getId());
+      expect(found!.getRole()).toBe('CUSTOMER');
+    });
+
+    it("persists ADMIN role", async () => {
+      const user = await makeUser({ email: "admin@example.com", role: 'ADMIN' });
+      const found = await repo.findById(user.getId());
+      expect(found!.getRole()).toBe('ADMIN');
     });
   });
 });
