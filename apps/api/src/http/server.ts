@@ -1,6 +1,7 @@
 import Fastify, { FastifyInstance } from "fastify";
 import fjwt from "@fastify/jwt";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import { errorHandler } from "./middleware/error-handler";
@@ -14,6 +15,8 @@ import { webhookRoutes, WebhookRouteOptions } from "./routes/webhook.routes";
 
 export interface ServerOptions {
   jwtSecret: string;
+  allowedOrigins: string | string[];
+  nodeEnv: string;
   auth: AuthRouteOptions;
   users: UserRouteOptions;
   products: ProductRouteOptions;
@@ -23,9 +26,20 @@ export interface ServerOptions {
 }
 
 export function buildServer(options: ServerOptions): FastifyInstance {
-  const app = Fastify({ logger: true });
+  const app = Fastify({
+    logger: options.nodeEnv === 'production'
+      ? true
+      : { transport: { target: 'pino-pretty' } },
+    genReqId: () => crypto.randomUUID(),
+  });
 
-  app.register(cors, { origin: "*" });
+  app.register(cors, { origin: options.allowedOrigins });
+
+  app.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+  });
 
   app.register(swagger, {
     openapi: {
@@ -40,12 +54,19 @@ export function buildServer(options: ServerOptions): FastifyInstance {
   });
 
   app.register(swaggerUi, { routePrefix: "/docs" });
-
   app.register(fjwt, { secret: options.jwtSecret });
   app.setErrorHandler(errorHandler);
 
   app.register(healthRoutes);
-  app.register(authRoutes, options.auth);
+
+  app.register(async (authPlugin) => {
+    await authPlugin.register(rateLimit, {
+      max: 10,
+      timeWindow: '1 minute',
+    });
+    authPlugin.register(authRoutes, options.auth);
+  });
+
   app.register(userRoutes, options.users);
   app.register(productRoutes, options.products);
   app.register(orderRoutes, options.orders);

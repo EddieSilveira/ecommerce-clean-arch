@@ -9,6 +9,7 @@ import { BcryptHasher } from "@infra/services/bcrypt-hasher";
 import { JwtTokenProvider } from "@infra/services/jwt-token-provider";
 import { CryptoTokenGenerator } from "@infra/services/crypto-token-generator";
 import { NodemailerEmailNotifier } from "@infra/services/nodemailer-email-notifier";
+import { bootstrapAdmin } from "@infra/bootstrap-admin";
 import { SignInUseCase } from "@application/use-cases/auth/sign-in.use-case";
 import { ForgotPasswordUseCase } from "@application/use-cases/auth/forgot-password.use-case";
 import { ResetPasswordUseCase } from "@application/use-cases/auth/reset-password.use-case";
@@ -28,7 +29,6 @@ import { CancelOrderUseCase } from "@application/use-cases/order/cancel-order.us
 import { ProcessPaymentUseCase } from "@application/use-cases/payment/process-payment.use-case";
 import { ApprovePaymentUseCase } from "@application/use-cases/payment/approve-payment.use-case";
 import { FailPaymentUseCase } from "@application/use-cases/payment/fail-payment.use-case";
-import { bootstrapAdmin } from "@infra/bootstrap-admin";
 import { buildServer } from "@http/server";
 
 async function main() {
@@ -68,8 +68,14 @@ async function main() {
   const approvePayment = new ApprovePaymentUseCase(paymentRepo, orderRepo);
   const failPayment = new FailPaymentUseCase(paymentRepo, orderRepo);
 
+  const allowedOrigins = env.ALLOWED_ORIGINS === '*'
+    ? '*'
+    : env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
+
   const server = buildServer({
     jwtSecret: env.JWT_SECRET,
+    allowedOrigins,
+    nodeEnv: env.NODE_ENV,
     auth: { signIn, forgotPassword, resetPassword },
     users: { createUser, getUser, updateUser, deleteUser },
     products: { createProduct, getProduct, updateProduct, deleteProduct, listProducts },
@@ -82,6 +88,15 @@ async function main() {
     { ADMIN_EMAIL: env.ADMIN_EMAIL, ADMIN_PASSWORD: env.ADMIN_PASSWORD },
     { userRepo, hasher }
   );
+
+  const shutdown = async () => {
+    await server.close();
+    await prisma.$disconnect();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 
   await server.listen({ port: env.PORT, host: "0.0.0.0" });
 }
