@@ -44,19 +44,43 @@ describe("ProductPrismaRepository", () => {
     });
   });
 
-  describe("findAll", () => {
-    it("returns all products", async () => {
+  describe("findAll with pagination", () => {
+    it("returns first page when no cursor given", async () => {
       await makeProduct({ name: "A" });
-      await makeProduct({ name: "B", price: 1.0 });
-      await makeProduct({ name: "C", price: 2.0 });
+      await makeProduct({ name: "B" });
+      await makeProduct({ name: "C" });
 
-      const all = await repo.findAll();
-      expect(all.length).toBe(3);
+      const result = await repo.findAll({ limit: 2 });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).not.toBeNull();
     });
 
-    it("returns empty array when no products exist", async () => {
-      const all = await repo.findAll();
-      expect(all).toEqual([]);
+    it("returns second page using cursor", async () => {
+      await makeProduct({ name: "A" });
+      await makeProduct({ name: "B" });
+      await makeProduct({ name: "C" });
+
+      const first = await repo.findAll({ limit: 2 });
+      const second = await repo.findAll({ cursor: first.nextCursor!, limit: 2 });
+
+      expect(second.items).toHaveLength(1);
+      expect(second.nextCursor).toBeNull();
+    });
+
+    it("returns all items when count is less than limit", async () => {
+      await makeProduct({ name: "Only" });
+
+      const result = await repo.findAll({ limit: 20 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it("returns empty when no products exist", async () => {
+      const result = await repo.findAll({ limit: 20 });
+      expect(result.items).toHaveLength(0);
+      expect(result.nextCursor).toBeNull();
     });
   });
 

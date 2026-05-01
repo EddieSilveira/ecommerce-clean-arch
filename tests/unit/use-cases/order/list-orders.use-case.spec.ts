@@ -3,27 +3,48 @@ import { fakeOrderRepository } from "@helpers/fakes";
 import { Order } from "@domain/order/entities/order.entity";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
+const userId = UUID.create();
+const makeOrder = () => Order.create({ userId });
+
 describe("ListOrdersUseCase", () => {
-  it("should return all orders for a user", async () => {
-    const userId = UUID.create();
-    const order1 = Order.create({ userId });
-    const order2 = Order.create({ userId });
-    const otherOrder = Order.create({ userId: UUID.create() });
+  it("should return orders for the given user", async () => {
+    const orders = [makeOrder(), makeOrder()];
+    const useCase = new ListOrdersUseCase(fakeOrderRepository(orders));
 
-    const useCase = new ListOrdersUseCase(fakeOrderRepository([order1, order2, otherOrder]));
+    const output = await useCase.execute({ userId: userId.getValue(), limit: 20 });
 
-    const output = await useCase.execute({ userId: userId.getValue() });
-
-    expect(output).toHaveLength(2);
-    expect(output[0]!.id).toBe(order1.getId().getValue());
-    expect(output[1]!.id).toBe(order2.getId().getValue());
+    expect(output.orders).toHaveLength(2);
+    expect(output.nextCursor).toBeNull();
   });
 
-  it("should return empty array when user has no orders", async () => {
-    const useCase = new ListOrdersUseCase(fakeOrderRepository());
+  it("should not return orders from other users", async () => {
+    const otherId = UUID.create();
+    const orders = [Order.create({ userId: otherId })];
+    const useCase = new ListOrdersUseCase(fakeOrderRepository(orders));
 
-    const output = await useCase.execute({ userId: "00000000-0000-4000-8000-000000000001" });
+    const output = await useCase.execute({ userId: userId.getValue(), limit: 20 });
 
-    expect(output).toEqual([]);
+    expect(output.orders).toHaveLength(0);
+  });
+
+  it("should return nextCursor when more orders exist", async () => {
+    const orders = [makeOrder(), makeOrder(), makeOrder()];
+    const useCase = new ListOrdersUseCase(fakeOrderRepository(orders));
+
+    const output = await useCase.execute({ userId: userId.getValue(), limit: 2 });
+
+    expect(output.orders).toHaveLength(2);
+    expect(output.nextCursor).not.toBeNull();
+  });
+
+  it("should return second page using cursor", async () => {
+    const orders = [makeOrder(), makeOrder(), makeOrder()];
+    const useCase = new ListOrdersUseCase(fakeOrderRepository(orders));
+
+    const firstPage = await useCase.execute({ userId: userId.getValue(), limit: 2 });
+    const secondPage = await useCase.execute({ userId: userId.getValue(), cursor: firstPage.nextCursor!, limit: 2 });
+
+    expect(secondPage.orders).toHaveLength(1);
+    expect(secondPage.nextCursor).toBeNull();
   });
 });

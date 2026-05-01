@@ -43,12 +43,22 @@ export async function orderRoutes(app: FastifyInstance, options: OrderRouteOptio
     return reply.status(201).send(output);
   });
 
-  app.get("/orders", {
+  app.get<{ Querystring: { cursor?: string; limit?: number } }>("/orders", {
     preHandler: authenticate,
-    schema: { description: "List orders for the authenticated user" }
+    schema: {
+      description: "List orders for the authenticated user",
+      querystring: {
+        type: "object",
+        properties: {
+          cursor: { type: "string" },
+          limit: { type: "integer", minimum: 1, maximum: 100 },
+        },
+      },
+    },
   }, async (request, reply) => {
     const { userId } = request.user;
-    const output = await options.listOrders.execute({ userId });
+    const { cursor, limit } = request.query;
+    const output = await options.listOrders.execute({ userId, cursor, limit });
     return reply.status(200).send(output);
   });
 

@@ -15,10 +15,20 @@ export interface ProductRouteOptions {
 }
 
 export async function productRoutes(app: FastifyInstance, options: ProductRouteOptions) {
-  app.get("/products", {
-    schema: { description: "List all products" }
-  }, async (_request, reply) => {
-    const output = await options.listProducts.execute();
+  app.get<{ Querystring: { cursor?: string; limit?: number } }>("/products", {
+    schema: {
+      description: "List all products",
+      querystring: {
+        type: "object",
+        properties: {
+          cursor: { type: "string" },
+          limit: { type: "integer", minimum: 1, maximum: 100 },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    const { cursor, limit } = request.query;
+    const output = await options.listProducts.execute({ cursor, limit });
     return reply.status(200).send(output);
   });
 

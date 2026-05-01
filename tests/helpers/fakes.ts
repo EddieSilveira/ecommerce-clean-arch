@@ -6,12 +6,30 @@ import { IUserRepository } from "@application/ports/user.repository";
 import { ITokenProvider } from "@application/ports/token-provider";
 import { ITokenGenerator } from "@application/ports/token-generator";
 import { IEmailNotifier } from "@application/ports/email-notifier";
+import { PaginationParams, PaginatedResult } from "@application/ports/pagination";
 import { Role } from "@domain/shared/role";
 import { Order } from "@domain/order/entities/order.entity";
 import { Payment } from "@domain/payment/payment.entity";
 import { Product } from "@domain/product/entities/product.entity";
 import { User } from "@domain/user/entities/user.entity";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
+
+function paginate<T extends { getId(): { getValue(): string } }>(
+  items: T[],
+  params: PaginationParams
+): PaginatedResult<T> {
+  const sorted = [...items].sort((a, b) =>
+    a.getId().getValue().localeCompare(b.getId().getValue())
+  );
+  const startIndex = params.cursor
+    ? sorted.findIndex(i => i.getId().getValue() === params.cursor) + 1
+    : 0;
+  const page = sorted.slice(startIndex, startIndex + params.limit + 1);
+  const hasNext = page.length > params.limit;
+  const result = hasNext ? page.slice(0, params.limit) : page;
+  const nextCursor = hasNext ? result[result.length - 1]!.getId().getValue() : null;
+  return { items: result, nextCursor };
+}
 
 export function fakeUserRepository(users: User[] = []): IUserRepository {
   return {
@@ -33,7 +51,7 @@ export function fakeUserRepository(users: User[] = []): IUserRepository {
 export function fakeProductRepository(products: Product[] = []): IProductRepository {
   return {
     findById: async (id: UUID) => products.find(p => p.getId().equals(id)) ?? null,
-    findAll: async () => [...products],
+    findAll: async (params: PaginationParams) => paginate(products, params),
     save: async (product: Product) => {
       const index = products.findIndex(p => p.getId().equals(product.getId()));
       if (index !== -1) products[index] = product;
@@ -49,7 +67,8 @@ export function fakeProductRepository(products: Product[] = []): IProductReposit
 export function fakeOrderRepository(orders: Order[] = []): IOrderRepository {
   return {
     findById: async (id: UUID) => orders.find(o => o.getId().equals(id)) ?? null,
-    findByUserId: async (userId: UUID) => orders.filter(o => o.getUserId().equals(userId)),
+    findByUserId: async (userId: UUID, params: PaginationParams) =>
+      paginate(orders.filter(o => o.getUserId().equals(userId)), params),
     save: async (order: Order) => {
       const index = orders.findIndex(o => o.getId().equals(order.getId()));
       if (index !== -1) orders[index] = order;

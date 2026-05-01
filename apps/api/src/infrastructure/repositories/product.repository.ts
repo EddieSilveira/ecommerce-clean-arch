@@ -1,4 +1,5 @@
 import { IProductRepository } from "@application/ports/product.repository";
+import { PaginationParams, PaginatedResult } from "@application/ports/pagination";
 import { Product } from "@domain/product/entities/product.entity";
 import { Money } from "@domain/shared/value-objects/money.vo";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
@@ -13,11 +14,22 @@ export class ProductPrismaRepository implements IProductRepository {
     return Product.reconstruct({ id: row.id, name: row.name, price: Money.create(row.price.toNumber()), stock: row.stock });
   }
 
-  async findAll(): Promise<Product[]> {
-    const rows = await this.prisma.product.findMany();
-    return rows.map(row =>
+  async findAll(params: PaginationParams): Promise<PaginatedResult<Product>> {
+    const rows = await this.prisma.product.findMany({
+      take: params.limit + 1,
+      ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+      orderBy: { id: 'asc' },
+    });
+
+    const hasNext = rows.length > params.limit;
+    const page = hasNext ? rows.slice(0, params.limit) : rows;
+    const nextCursor = hasNext ? page[page.length - 1]!.id : null;
+
+    const items = page.map(row =>
       Product.reconstruct({ id: row.id, name: row.name, price: Money.create(row.price.toNumber()), stock: row.stock })
     );
+
+    return { items, nextCursor };
   }
 
   async save(product: Product): Promise<void> {

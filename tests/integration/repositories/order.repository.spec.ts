@@ -68,21 +68,48 @@ describe("OrderPrismaRepository", () => {
     });
   });
 
-  describe("findByUserId", () => {
+  describe("findByUserId with pagination", () => {
     it("returns all orders for a user", async () => {
       const user = await makeUser();
       const product = await makeProduct();
       await makeOrder(user, product);
       await makeOrder(user, product);
 
-      const orders = await orderRepo.findByUserId(user.getId());
-      expect(orders).toHaveLength(2);
+      const result = await orderRepo.findByUserId(user.getId(), { limit: 20 });
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).toBeNull();
     });
 
-    it("returns empty array for user with no orders", async () => {
+    it("returns empty when user has no orders", async () => {
       const user = await makeUser();
-      const orders = await orderRepo.findByUserId(user.getId());
-      expect(orders).toEqual([]);
+      const result = await orderRepo.findByUserId(user.getId(), { limit: 20 });
+      expect(result.items).toHaveLength(0);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it("returns first page with cursor when more orders exist", async () => {
+      const user = await makeUser();
+      const product = await makeProduct();
+      await makeOrder(user, product);
+      await makeOrder(user, product);
+      await makeOrder(user, product);
+
+      const result = await orderRepo.findByUserId(user.getId(), { limit: 2 });
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).not.toBeNull();
+    });
+
+    it("returns second page using cursor", async () => {
+      const user = await makeUser();
+      const product = await makeProduct();
+      await makeOrder(user, product);
+      await makeOrder(user, product);
+      await makeOrder(user, product);
+
+      const first = await orderRepo.findByUserId(user.getId(), { limit: 2 });
+      const second = await orderRepo.findByUserId(user.getId(), { cursor: first.nextCursor!, limit: 2 });
+      expect(second.items).toHaveLength(1);
+      expect(second.nextCursor).toBeNull();
     });
   });
 
@@ -91,7 +118,6 @@ describe("OrderPrismaRepository", () => {
       const user = await makeUser();
       const product = await makeProduct();
 
-      // Create a PENDING order (not confirmed) so it can be cancelled
       const order = Order.create({ userId: user.getId() });
       order.addItem({
         productId: product.getId(),

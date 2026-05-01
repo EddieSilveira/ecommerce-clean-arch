@@ -1,4 +1,5 @@
 import { IOrderRepository } from "@application/ports/order.repository";
+import { PaginationParams, PaginatedResult } from "@application/ports/pagination";
 import { Order, OrderStatus } from "@domain/order/entities/order.entity";
 import { OrderItem } from "@domain/order/entities/order-item.entity";
 import { Money } from "@domain/shared/value-objects/money.vo";
@@ -41,12 +42,20 @@ export class OrderPrismaRepository implements IOrderRepository {
     return rowToOrder(row);
   }
 
-  async findByUserId(userId: UUID): Promise<Order[]> {
+  async findByUserId(userId: UUID, params: PaginationParams): Promise<PaginatedResult<Order>> {
     const rows = await this.prisma.order.findMany({
       where: { userId: userId.getValue() },
+      take: params.limit + 1,
+      ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+      orderBy: { id: 'asc' },
       include: { items: true },
     });
-    return rows.map(rowToOrder);
+
+    const hasNext = rows.length > params.limit;
+    const page = hasNext ? rows.slice(0, params.limit) : rows;
+    const nextCursor = hasNext ? page[page.length - 1]!.id : null;
+
+    return { items: page.map(rowToOrder), nextCursor };
   }
 
   async save(order: Order): Promise<void> {

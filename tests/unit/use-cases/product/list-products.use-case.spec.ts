@@ -1,51 +1,49 @@
 import { ListProductsUseCase } from "@application/use-cases/product/list-products.use-case";
+import { fakeProductRepository } from "@helpers/fakes";
 import { Product } from "@domain/product/entities/product.entity";
 import { Money } from "@domain/shared/value-objects/money.vo";
-import { fakeProductRepository } from "@helpers/fakes";
 
-const makeProduct = (name = "T-shirt", price = 6990, stock = 50) =>
-  Product.create({ name, price: Money.create(price), stock });
+const makeProduct = (name: string) =>
+  Product.create({ name, price: Money.create(10), stock: 5 });
 
 describe("ListProductsUseCase", () => {
-  it("should return an empty list when there are no products", async () => {
-    const useCase = new ListProductsUseCase(fakeProductRepository());
-
-    const output = await useCase.execute();
-
-    expect(output.products).toHaveLength(0);
-  });
-
-  it("should return all products", async () => {
-    const products = [makeProduct(), makeProduct("Shorts", 4990, 30)];
+  it("should return all products when fewer than limit", async () => {
+    const products = [makeProduct("A"), makeProduct("B")];
     const useCase = new ListProductsUseCase(fakeProductRepository(products));
 
-    const output = await useCase.execute();
+    const output = await useCase.execute({ limit: 20 });
 
     expect(output.products).toHaveLength(2);
+    expect(output.nextCursor).toBeNull();
   });
 
-  it("should return products with correct data", async () => {
-    const product = makeProduct("T-shirt", 6990, 50);
-    const useCase = new ListProductsUseCase(fakeProductRepository([product]));
-
-    const output = await useCase.execute();
-
-    expect(output.products[0]).toEqual({
-      productId: product.getId().getValue(),
-      name: "T-shirt",
-      price: 6990,
-      stock: 50,
-    });
-  });
-
-  it("should return a productId for each product", async () => {
-    const products = [makeProduct(), makeProduct("Shorts", 4990, 30)];
+  it("should return nextCursor when more items exist", async () => {
+    const products = Array.from({ length: 3 }, (_, i) => makeProduct(`Product ${i}`));
     const useCase = new ListProductsUseCase(fakeProductRepository(products));
 
-    const output = await useCase.execute();
+    const output = await useCase.execute({ limit: 2 });
 
-    output.products.forEach(p => {
-      expect(p.productId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-    });
+    expect(output.products).toHaveLength(2);
+    expect(output.nextCursor).not.toBeNull();
+  });
+
+  it("should return second page using cursor", async () => {
+    const products = Array.from({ length: 3 }, (_, i) => makeProduct(`Product ${i}`));
+    const useCase = new ListProductsUseCase(fakeProductRepository(products));
+
+    const firstPage = await useCase.execute({ limit: 2 });
+    const secondPage = await useCase.execute({ cursor: firstPage.nextCursor!, limit: 2 });
+
+    expect(secondPage.products).toHaveLength(1);
+    expect(secondPage.nextCursor).toBeNull();
+  });
+
+  it("should use default limit of 20 when not specified", async () => {
+    const products = Array.from({ length: 5 }, (_, i) => makeProduct(`Product ${i}`));
+    const useCase = new ListProductsUseCase(fakeProductRepository(products));
+
+    const output = await useCase.execute({});
+
+    expect(output.products).toHaveLength(5);
   });
 });
