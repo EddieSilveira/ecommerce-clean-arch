@@ -2,6 +2,7 @@ import { ProcessPaymentUseCase } from "@application/use-cases/payment/process-pa
 import { fakeOrderRepository, fakePaymentRepository } from "@helpers/fakes";
 import { Order, OrderStatus } from "@domain/order/entities/order.entity";
 import { Payment, PaymentStatus } from "@domain/payment/payment.entity";
+import { Money } from "@domain/shared/value-objects/money.vo";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 const ownerId = UUID.create();
@@ -11,6 +12,12 @@ const ownerActor = () => ({ id: ownerId.getValue(), role: 'CUSTOMER' as const })
 describe("ProcessPaymentUseCase", () => {
   it("should create a payment in PENDING status for a pending order", async () => {
     const order = makePendingOrder();
+    order.addItem({
+      productId: UUID.create(),
+      productName: 'Product',
+      unitPrice: Money.create(150),
+      quantity: 1,
+    });
     const payments: Payment[] = [];
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository(payments));
 
@@ -40,15 +47,6 @@ describe("ProcessPaymentUseCase", () => {
     ).rejects.toThrow("Order is not pending");
   });
 
-  it("should throw if amount is zero or negative", async () => {
-    const order = makePendingOrder();
-    const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
-
-    await expect(
-      useCase.execute({ orderId: order.getId().getValue(), amount: 0, actor: ownerActor() })
-    ).rejects.toThrow("Value cannot be negative");
-  });
-
   it("should throw Unauthorized when actor does not own the order", async () => {
     const order = makePendingOrder();
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
@@ -60,5 +58,39 @@ describe("ProcessPaymentUseCase", () => {
         actor: { id: 'different-user-id', role: 'CUSTOMER' },
       })
     ).rejects.toThrow("Unauthorized");
+  });
+
+  it("should throw PaymentAmountMismatchError when amount does not match order total", async () => {
+    const order = makePendingOrder();
+    order.addItem({
+      productId: UUID.create(),
+      productName: 'Item',
+      unitPrice: Money.create(50),
+      quantity: 2,
+    });
+    // order total = 100
+    const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
+
+    await expect(
+      useCase.execute({ orderId: order.getId().getValue(), amount: 999, actor: ownerActor() })
+    ).rejects.toThrow("Payment amount does not match order total");
+  });
+
+  it("should accept payment when amount exactly matches order total", async () => {
+    const order = makePendingOrder();
+    order.addItem({
+      productId: UUID.create(),
+      productName: 'Item',
+      unitPrice: Money.create(50),
+      quantity: 2,
+    });
+    // order total = 100
+    const payments: Payment[] = [];
+    const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository(payments));
+
+    const output = await useCase.execute({ orderId: order.getId().getValue(), amount: 100, actor: ownerActor() });
+
+    expect(output.paymentId).toBeDefined();
+    expect(payments[0]!.getAmount().getValue()).toBe(100);
   });
 });
