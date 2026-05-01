@@ -1,6 +1,13 @@
 import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 export function errorHandler(error: FastifyError, request: FastifyRequest, reply: FastifyReply) {
+  if (error.name === 'UnauthorizedError') {
+    return reply.status(403).send({ error: error.message });
+  }
+  if (error.name === 'PaymentAmountMismatchError') {
+    return reply.status(422).send({ error: error.message });
+  }
+
   const message = error.message.toLowerCase();
 
   if (message.includes("not found")) {
