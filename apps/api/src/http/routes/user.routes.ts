@@ -37,7 +37,8 @@ export async function userRoutes(app: FastifyInstance, options: UserRouteOptions
     schema: { description: "Get user by ID (requires auth)" }
   }, async (request, reply) => {
     const { id } = request.params;
-    const output = await options.getUser.execute({ userId: id });
+    const actor = { id: request.user.userId, role: request.user.role };
+    const output = await options.getUser.execute({ userId: id, actor });
     return reply.status(200).send(output);
   });
 
@@ -57,8 +58,9 @@ export async function userRoutes(app: FastifyInstance, options: UserRouteOptions
     }
   }, async (request, reply) => {
     const { id } = request.params;
+    const actor = { id: request.user.userId, role: request.user.role };
     const { name, email, password } = request.body;
-    const input: { userId: string; name?: string; email?: string; password?: string } = { userId: id };
+    const input: { userId: string; actor: typeof actor; name?: string; email?: string; password?: string } = { userId: id, actor };
     if (name !== undefined) input.name = name;
     if (email !== undefined) input.email = email;
     if (password !== undefined) input.password = password;
@@ -71,7 +73,8 @@ export async function userRoutes(app: FastifyInstance, options: UserRouteOptions
     schema: { description: "Delete user (requires auth)" }
   }, async (request, reply) => {
     const { id } = request.params;
-    await options.deleteUser.execute({ userId: id });
+    const actor = { id: request.user.userId, role: request.user.role };
+    await options.deleteUser.execute({ userId: id, actor });
     return reply.status(204).send();
   });
 }

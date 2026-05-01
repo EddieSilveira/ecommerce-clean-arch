@@ -10,7 +10,7 @@ describe("DeleteUserUseCase", () => {
     const users: User[] = [user];
     const useCase = new DeleteUserUseCase(fakeUserRepository(users));
 
-    await useCase.execute({ userId: user.getId().getValue() });
+    await useCase.execute({ userId: user.getId().getValue(), actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(users).toHaveLength(0);
   });
@@ -19,7 +19,7 @@ describe("DeleteUserUseCase", () => {
     const user = makeUser();
     const useCase = new DeleteUserUseCase(fakeUserRepository([user]));
 
-    const output = await useCase.execute({ userId: user.getId().getValue() });
+    const output = await useCase.execute({ userId: user.getId().getValue(), actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(output.success).toBe(true);
   });
@@ -28,6 +28,31 @@ describe("DeleteUserUseCase", () => {
     const user = makeUser();
     const useCase = new DeleteUserUseCase(fakeUserRepository([]));
 
-    await expect(useCase.execute({ userId: user.getId().getValue() })).rejects.toThrow("User not found");
+    await expect(useCase.execute({ userId: user.getId().getValue(), actor: { id: user.getId().getValue(), role: 'CUSTOMER' } })).rejects.toThrow("User not found");
+  });
+
+  it("should allow ADMIN to delete any user", async () => {
+    const user = makeUser();
+    const users = [user];
+    const useCase = new DeleteUserUseCase(fakeUserRepository(users));
+
+    await useCase.execute({
+      userId: user.getId().getValue(),
+      actor: { id: 'admin-id', role: 'ADMIN' },
+    });
+
+    expect(users).toHaveLength(0);
+  });
+
+  it("should throw Unauthorized when CUSTOMER tries to delete another user", async () => {
+    const user = makeUser();
+    const useCase = new DeleteUserUseCase(fakeUserRepository([user]));
+
+    await expect(
+      useCase.execute({
+        userId: user.getId().getValue(),
+        actor: { id: 'different-id', role: 'CUSTOMER' },
+      })
+    ).rejects.toThrow("Unauthorized");
   });
 });

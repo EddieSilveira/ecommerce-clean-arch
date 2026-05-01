@@ -9,7 +9,7 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await useCase.execute({ userId: user.getId().getValue(), name: "Jane Doe" });
+    await useCase.execute({ userId: user.getId().getValue(), name: "Jane Doe", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(user.getName()).toBe("Jane Doe");
   });
@@ -18,7 +18,7 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await useCase.execute({ userId: user.getId().getValue(), email: "jane@example.com" });
+    await useCase.execute({ userId: user.getId().getValue(), email: "jane@example.com", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(user.getEmail()).toBe("jane@example.com");
   });
@@ -27,7 +27,7 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await useCase.execute({ userId: user.getId().getValue(), password: "NewP@ss123" });
+    await useCase.execute({ userId: user.getId().getValue(), password: "NewP@ss123", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(user.getPasswordHash()).toBe("hashed:NewP@ss123");
   });
@@ -36,7 +36,7 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await useCase.execute({ userId: user.getId().getValue(), name: "Jane Doe", email: "jane@example.com" });
+    await useCase.execute({ userId: user.getId().getValue(), name: "Jane Doe", email: "jane@example.com", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } });
 
     expect(user.getName()).toBe("Jane Doe");
     expect(user.getEmail()).toBe("jane@example.com");
@@ -46,14 +46,14 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([]), fakeHasher());
 
-    await expect(useCase.execute({ userId: user.getId().getValue(), name: "Jane" })).rejects.toThrow("User not found");
+    await expect(useCase.execute({ userId: user.getId().getValue(), name: "Jane", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } })).rejects.toThrow("User not found");
   });
 
   it("should throw if new password is weak", async () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await expect(useCase.execute({ userId: user.getId().getValue(), password: "weak" }))
+    await expect(useCase.execute({ userId: user.getId().getValue(), password: "weak", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } }))
       .rejects.toThrow("Password must be at least 8 characters");
   });
 
@@ -61,7 +61,20 @@ describe("UpdateUserUseCase", () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
-    await expect(useCase.execute({ userId: user.getId().getValue(), email: "not-an-email" }))
+    await expect(useCase.execute({ userId: user.getId().getValue(), email: "not-an-email", actor: { id: user.getId().getValue(), role: 'CUSTOMER' } }))
       .rejects.toThrow("Invalid email");
+  });
+
+  it("should throw Unauthorized when actor is not the owner", async () => {
+    const user = makeUser();
+    const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
+
+    await expect(
+      useCase.execute({
+        userId: user.getId().getValue(),
+        name: "Hacker",
+        actor: { id: 'different-id', role: 'CUSTOMER' },
+      })
+    ).rejects.toThrow("Unauthorized");
   });
 });

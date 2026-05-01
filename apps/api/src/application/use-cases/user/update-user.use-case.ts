@@ -1,10 +1,13 @@
 import { IHasher } from "@application/ports/hasher";
 import { IUserRepository } from "@application/ports/user.repository";
+import { Actor } from "@domain/shared/role";
+import { UnauthorizedError } from "@domain/shared/errors/unauthorized.error";
 import { Password } from "@domain/shared/value-objects/password.vo";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 export interface UpdateUserInput {
   userId: string;
+  actor: Actor;
   name?: string;
   email?: string;
   password?: string;
@@ -23,6 +26,8 @@ export class UpdateUserUseCase {
   async execute(input: UpdateUserInput): Promise<UpdateUserOutput> {
     const user = await this.userRepository.findById(UUID.create(input.userId));
     if (!user) throw new Error("User not found");
+
+    if (input.actor.id !== input.userId) throw new UnauthorizedError();
 
     let passwordHash: string | undefined;
     if (input.password !== undefined) {
