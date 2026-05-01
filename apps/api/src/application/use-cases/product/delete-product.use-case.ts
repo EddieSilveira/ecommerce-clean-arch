@@ -1,27 +1,28 @@
 import { IProductRepository } from "@application/ports/product.repository";
+import { Actor } from "@domain/shared/role";
+import { UnauthorizedError } from "@domain/shared/errors/unauthorized.error";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 export interface DeleteProductInput {
-    productId: string;
+  productId: string;
+  actor: Actor;
 }
 
 export interface DeleteProductOutput {
-    success: boolean
+  success: boolean;
 }
 
 export class DeleteProductUseCase {
-    constructor(
-        private productRepository: IProductRepository
-    ) { }
+  constructor(private readonly productRepository: IProductRepository) {}
 
-    async execute(input: DeleteProductInput): Promise<DeleteProductOutput> {
-        const product = await this.productRepository.findById(UUID.create(input.productId));
-        if (!product) throw new Error("Product not found");
+  async execute(input: DeleteProductInput): Promise<DeleteProductOutput> {
+    if (input.actor.role !== 'ADMIN') throw new UnauthorizedError();
 
-        await this.productRepository.delete(product.getId());
+    const product = await this.productRepository.findById(UUID.create(input.productId));
+    if (!product) throw new Error("Product not found");
 
-        return {
-            success: true
-        }
-    }
+    await this.productRepository.delete(product.getId());
+
+    return { success: true };
+  }
 }

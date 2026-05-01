@@ -33,7 +33,7 @@ export async function productRoutes(app: FastifyInstance, options: ProductRouteO
   app.post<{ Body: { name: string; price: number; stock: number } }>("/products", {
     preHandler: authenticate,
     schema: {
-      description: "Create a product (requires auth)",
+      description: "Create a product (requires auth, ADMIN only)",
       body: {
         type: "object",
         required: ["name", "price", "stock"],
@@ -45,15 +45,16 @@ export async function productRoutes(app: FastifyInstance, options: ProductRouteO
       }
     }
   }, async (request, reply) => {
+    const actor = { id: request.user.userId, role: request.user.role };
     const { name, price, stock } = request.body;
-    const output = await options.createProduct.execute({ name, price, stock });
+    const output = await options.createProduct.execute({ name, price, stock, actor });
     return reply.status(201).send(output);
   });
 
   app.put<{ Params: { id: string }; Body: { name?: string; price?: number; stock?: number } }>("/products/:id", {
     preHandler: authenticate,
     schema: {
-      description: "Update a product (requires auth)",
+      description: "Update a product (requires auth, ADMIN only)",
       body: {
         type: "object",
         properties: {
@@ -65,9 +66,10 @@ export async function productRoutes(app: FastifyInstance, options: ProductRouteO
       }
     }
   }, async (request, reply) => {
+    const actor = { id: request.user.userId, role: request.user.role };
     const { id } = request.params;
     const { name, price, stock } = request.body;
-    const input: { productId: string; name?: string; price?: number; stock?: number } = { productId: id };
+    const input: { productId: string; actor: typeof actor; name?: string; price?: number; stock?: number } = { productId: id, actor };
     if (name !== undefined) input.name = name;
     if (price !== undefined) input.price = price;
     if (stock !== undefined) input.stock = stock;
@@ -77,10 +79,11 @@ export async function productRoutes(app: FastifyInstance, options: ProductRouteO
 
   app.delete<{ Params: { id: string } }>("/products/:id", {
     preHandler: authenticate,
-    schema: { description: "Delete a product (requires auth)" }
+    schema: { description: "Delete a product (requires auth, ADMIN only)" }
   }, async (request, reply) => {
+    const actor = { id: request.user.userId, role: request.user.role };
     const { id } = request.params;
-    await options.deleteProduct.execute({ productId: id });
+    await options.deleteProduct.execute({ productId: id, actor });
     return reply.status(204).send();
   });
 }

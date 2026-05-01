@@ -1,8 +1,8 @@
-
 import { fakeProductRepository } from "@helpers/fakes";
 import { CreateProductUseCase } from "@application/use-cases/product/create-product.use-case";
 
-const validInput = () => ({ name: "Pants", price: 9999, stock: 100 });
+const adminActor = { id: 'admin-id', role: 'ADMIN' as const };
+const validInput = () => ({ name: "Pants", price: 9999, stock: 100, actor: adminActor });
 
 describe("CreateProductUseCase", () => {
   it("should create a product and return the productId", async () => {
@@ -68,7 +68,7 @@ describe("CreateProductUseCase", () => {
     const products: any[] = [];
     const useCase = new CreateProductUseCase(fakeProductRepository(products));
 
-    await useCase.execute({ name: "Calça", price: 9999, stock: 100 });
+    await useCase.execute({ name: "Calça", price: 9999, stock: 100, actor: adminActor });
 
     const saved = products[0];
     expect(saved.getName()).toBe("Calça");
@@ -96,5 +96,13 @@ describe("CreateProductUseCase", () => {
     await expect(useCase.execute({ ...validInput(), name: "" })).rejects.toThrow();
 
     expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it("should throw Unauthorized when actor is not ADMIN", async () => {
+    const useCase = new CreateProductUseCase(fakeProductRepository());
+
+    await expect(
+      useCase.execute({ name: "Laptop", price: 999, stock: 10, actor: { id: 'user-id', role: 'CUSTOMER' } })
+    ).rejects.toThrow("Unauthorized");
   });
 });
