@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { env } from "./env";
 import { prisma } from "@infra/database/prisma.client";
 import { UserPrismaRepository } from "@infra/repositories/user.repository";
 import { ProductPrismaRepository } from "@infra/repositories/product.repository";
@@ -30,28 +31,22 @@ import { FailPaymentUseCase } from "@application/use-cases/payment/fail-payment.
 import { buildServer } from "@http/server";
 
 async function main() {
-  // Repositories
   const userRepo = new UserPrismaRepository(prisma);
   const productRepo = new ProductPrismaRepository(prisma);
   const orderRepo = new OrderPrismaRepository(prisma);
   const paymentRepo = new PaymentPrismaRepository(prisma);
 
-  // Services
   const hasher = new BcryptHasher();
-  const tokenProvider = new JwtTokenProvider(
-    process.env["JWT_SECRET"]!,
-    process.env["JWT_EXPIRES_IN"] ?? "7d"
-  );
+  const tokenProvider = new JwtTokenProvider(env.JWT_SECRET, env.JWT_EXPIRES_IN);
   const tokenGenerator = new CryptoTokenGenerator();
   const emailNotifier = new NodemailerEmailNotifier({
-    host: process.env["SMTP_HOST"]!,
-    port: Number(process.env["SMTP_PORT"]),
-    user: process.env["SMTP_USER"]!,
-    pass: process.env["SMTP_PASS"]!,
-    from: process.env["SMTP_FROM"]!,
+    host: env.SMTP_HOST ?? '',
+    port: env.SMTP_PORT,
+    user: env.SMTP_USER ?? '',
+    pass: env.SMTP_PASS ?? '',
+    from: env.SMTP_FROM ?? '',
   });
 
-  // Use Cases
   const signIn = new SignInUseCase(userRepo, hasher, tokenProvider);
   const forgotPassword = new ForgotPasswordUseCase(userRepo, tokenGenerator, emailNotifier);
   const resetPassword = new ResetPasswordUseCase(userRepo, hasher);
@@ -73,7 +68,7 @@ async function main() {
   const failPayment = new FailPaymentUseCase(paymentRepo, orderRepo);
 
   const server = buildServer({
-    jwtSecret: process.env["JWT_SECRET"]!,
+    jwtSecret: env.JWT_SECRET,
     auth: { signIn, forgotPassword, resetPassword },
     users: { createUser, getUser, updateUser, deleteUser },
     products: { createProduct, getProduct, updateProduct, deleteProduct, listProducts },
@@ -81,8 +76,7 @@ async function main() {
     payments: { processPayment, approvePayment, failPayment },
   });
 
-  const port = Number(process.env["PORT"] ?? 3000);
-  await server.listen({ port, host: "0.0.0.0" });
+  await server.listen({ port: env.PORT, host: "0.0.0.0" });
 }
 
 main().catch(err => {
