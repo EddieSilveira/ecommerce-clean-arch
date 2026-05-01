@@ -1,6 +1,10 @@
 import Fastify, { FastifyInstance } from "fastify";
 import fjwt from "@fastify/jwt";
+import cors from "@fastify/cors";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 import { errorHandler } from "./middleware/error-handler";
+import { healthRoutes } from "./routes/health.routes";
 import { authRoutes, AuthRouteOptions } from "./routes/auth.routes";
 import { userRoutes, UserRouteOptions } from "./routes/user.routes";
 import { productRoutes, ProductRouteOptions } from "./routes/product.routes";
@@ -19,9 +23,26 @@ export interface ServerOptions {
 export function buildServer(options: ServerOptions): FastifyInstance {
   const app = Fastify({ logger: true });
 
+  app.register(cors, { origin: "*" });
+
+  app.register(swagger, {
+    openapi: {
+      openapi: "3.0.0",
+      info: { title: "Ecommerce API", version: "1.0.0" },
+      components: {
+        securitySchemes: {
+          bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
+        }
+      }
+    }
+  });
+
+  app.register(swaggerUi, { routePrefix: "/docs" });
+
   app.register(fjwt, { secret: options.jwtSecret });
   app.setErrorHandler(errorHandler);
 
+  app.register(healthRoutes);
   app.register(authRoutes, options.auth);
   app.register(userRoutes, options.users);
   app.register(productRoutes, options.products);
