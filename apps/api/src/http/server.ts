@@ -10,6 +10,7 @@ import { userRoutes, UserRouteOptions } from "./routes/user.routes";
 import { productRoutes, ProductRouteOptions } from "./routes/product.routes";
 import { orderRoutes, OrderRouteOptions } from "./routes/order.routes";
 import { paymentRoutes, PaymentRouteOptions } from "./routes/payment.routes";
+import { webhookRoutes, WebhookRouteOptions } from "./routes/webhook.routes";
 
 export interface ServerOptions {
   jwtSecret: string;
@@ -18,6 +19,7 @@ export interface ServerOptions {
   products: ProductRouteOptions;
   orders: OrderRouteOptions;
   payments: PaymentRouteOptions;
+  webhook: WebhookRouteOptions;
 }
 
 export function buildServer(options: ServerOptions): FastifyInstance {
@@ -48,6 +50,7 @@ export function buildServer(options: ServerOptions): FastifyInstance {
   app.register(productRoutes, options.products);
   app.register(orderRoutes, options.orders);
   app.register(paymentRoutes, options.payments);
+  app.register(webhookRoutes, options.webhook);
 
   return app;
 }

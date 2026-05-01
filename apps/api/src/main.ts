@@ -74,7 +74,8 @@ async function main() {
     users: { createUser, getUser, updateUser, deleteUser },
     products: { createProduct, getProduct, updateProduct, deleteProduct, listProducts },
     orders: { placeOrder, getOrder, listOrders, cancelOrder },
-    payments: { processPayment, approvePayment, failPayment },
+    payments: { processPayment },
+    webhook: { approvePayment, failPayment },
   });
 
   await bootstrapAdmin(
