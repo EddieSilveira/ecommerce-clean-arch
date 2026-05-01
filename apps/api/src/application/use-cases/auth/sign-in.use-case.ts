@@ -25,7 +25,7 @@ export class SignInUseCase {
     const valid = await this.hasher.compare(input.password, user.getPasswordHash());
     if (!valid) throw new Error("Invalid credentials");
 
-    const token = this.tokenProvider.generate(user.getId().getValue());
+    const token = this.tokenProvider.generate(user.getId().getValue(), user.getRole());
     return { token };
   }
 }

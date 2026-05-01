@@ -1,4 +1,5 @@
 import { ITokenProvider } from "@application/ports/token-provider";
+import { Role } from "@domain/shared/role";
 import * as jwt from "jsonwebtoken";
 
 export class JwtTokenProvider implements ITokenProvider {
@@ -7,7 +8,7 @@ export class JwtTokenProvider implements ITokenProvider {
     private readonly expiresIn: string
   ) {}
 
-  generate(userId: string): string {
-    return jwt.sign({ userId }, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
+  generate(userId: string, role: Role): string {
+    return jwt.sign({ userId, role }, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
   }
 }

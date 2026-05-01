@@ -6,6 +6,7 @@ import { IUserRepository } from "@application/ports/user.repository";
 import { ITokenProvider } from "@application/ports/token-provider";
 import { ITokenGenerator } from "@application/ports/token-generator";
 import { IEmailNotifier } from "@application/ports/email-notifier";
+import { Role } from "@domain/shared/role";
 import { Order } from "@domain/order/entities/order.entity";
 import { Payment } from "@domain/payment/payment.entity";
 import { Product } from "@domain/product/entities/product.entity";
@@ -78,7 +79,7 @@ export function fakeHasher(): IHasher {
 
 export function fakeTokenProvider(): ITokenProvider {
   return {
-    generate: (userId: string) => `token:${userId}`,
+    generate: (userId: string, role: Role) => `token:${userId}:${role}`,
   };
 }
 

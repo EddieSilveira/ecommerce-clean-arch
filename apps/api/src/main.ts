@@ -28,6 +28,7 @@ import { CancelOrderUseCase } from "@application/use-cases/order/cancel-order.us
 import { ProcessPaymentUseCase } from "@application/use-cases/payment/process-payment.use-case";
 import { ApprovePaymentUseCase } from "@application/use-cases/payment/approve-payment.use-case";
 import { FailPaymentUseCase } from "@application/use-cases/payment/fail-payment.use-case";
+import { bootstrapAdmin } from "@infra/bootstrap-admin";
 import { buildServer } from "@http/server";
 
 async function main() {
@@ -75,6 +76,11 @@ async function main() {
     orders: { placeOrder, getOrder, listOrders, cancelOrder },
     payments: { processPayment, approvePayment, failPayment },
   });
+
+  await bootstrapAdmin(
+    { ADMIN_EMAIL: env.ADMIN_EMAIL, ADMIN_PASSWORD: env.ADMIN_PASSWORD },
+    { userRepo, hasher }
+  );
 
   await server.listen({ port: env.PORT, host: "0.0.0.0" });
 }

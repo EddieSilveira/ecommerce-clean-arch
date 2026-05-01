@@ -18,7 +18,7 @@ async function makeUser(overrides?: Partial<{ name: string; email: string; passw
     name: overrides?.name ?? "Alice",
     email: overrides?.email ?? "alice@example.com",
     passwordHash: overrides?.passwordHash ?? "hashed_password",
-    role: overrides?.role,
+    ...(overrides?.role !== undefined ? { role: overrides.role } : {}),
   });
   await repo.save(user);
   return user;
