@@ -1,7 +1,13 @@
 import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 export function errorHandler(error: FastifyError, request: FastifyRequest, reply: FastifyReply) {
-  if (error.name === 'UnauthorizedError') {
+  if (error.name === 'NotFoundError') {
+    return reply.status(404).send({ error: error.message });
+  }
+  if (error.name === 'ConflictError') {
+    return reply.status(409).send({ error: error.message });
+  }
+  if (error.name === 'ForbiddenError') {
     return reply.status(403).send({ error: error.message });
   }
   if (error.name === 'PaymentAmountMismatchError') {
