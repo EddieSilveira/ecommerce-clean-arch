@@ -33,7 +33,12 @@ export function buildServer(options: ServerOptions): FastifyInstance {
     genReqId: () => crypto.randomUUID(),
   });
 
-  app.register(cors, { origin: options.allowedOrigins });
+  app.register(cors, {
+    origin: options.allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 0,
+  });
 
   app.register(rateLimit, {
     global: true,

@@ -12,8 +12,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
+  const hasBody = init.body !== undefined
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(init.headers as Record<string, string>),
   }
