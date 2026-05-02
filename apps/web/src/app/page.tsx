@@ -4,12 +4,16 @@ import { ProductGrid } from '@/components/products/ProductGrid'
 import type { ProductsResponse } from '@/lib/types'
 
 async function getFeaturedProducts() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=4`, {
-    next: { revalidate: 60 },
-  })
-  if (!res.ok) return []
-  const data: ProductsResponse = await res.json()
-  return data.products
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=4`, {
+      next: { revalidate: 60 },
+    })
+    if (!res.ok) return []
+    const data: ProductsResponse = await res.json()
+    return data.products
+  } catch {
+    return []
+  }
 }
 
 export default async function HomePage() {
