@@ -53,7 +53,7 @@ export async function authRoutes(app: FastifyInstance, options: AuthRouteOptions
         required: ["token", "newPassword"],
         properties: {
           token: { type: "string", minLength: 1 },
-          newPassword: { type: "string", minLength: 1 }
+          newPassword: { type: "string", minLength: 8 }
         }
       }
     }
