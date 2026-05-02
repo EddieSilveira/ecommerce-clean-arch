@@ -1,7 +1,7 @@
 import { IProductRepository } from "@application/ports/product.repository";
 import { Money } from "@domain/shared/value-objects/money.vo";
 import { Actor } from "@domain/shared/role";
-import { UnauthorizedError } from "@domain/shared/errors/unauthorized.error";
+import { ForbiddenError } from "@domain/shared/errors/forbidden.error";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 export interface UpdateProductInput {
@@ -20,7 +20,7 @@ export class UpdateProductUseCase {
   constructor(private readonly productRepository: IProductRepository) {}
 
   async execute(input: UpdateProductInput): Promise<UpdateProductOutput> {
-    if (input.actor.role !== 'ADMIN') throw new UnauthorizedError();
+    if (input.actor.role !== 'ADMIN') throw new ForbiddenError();
 
     const product = await this.productRepository.findById(UUID.create(input.productId));
     if (!product) throw new Error("Product not found");

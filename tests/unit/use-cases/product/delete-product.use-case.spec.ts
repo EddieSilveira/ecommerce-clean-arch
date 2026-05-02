@@ -33,12 +33,12 @@ describe("DeleteProductUseCase", () => {
     await expect(useCase.execute({ productId: product.getId().getValue(), actor: adminActor })).rejects.toThrow("Product not found");
   });
 
-  it("should throw Unauthorized when actor is not ADMIN", async () => {
+  it("should throw Forbidden when actor is not ADMIN", async () => {
     const product = makeProduct();
     const useCase = new DeleteProductUseCase(fakeProductRepository([product]));
 
     await expect(
       useCase.execute({ productId: product.getId().getValue(), actor: { id: 'user-id', role: 'CUSTOMER' } })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 });

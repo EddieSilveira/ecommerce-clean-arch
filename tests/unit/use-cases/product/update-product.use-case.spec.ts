@@ -102,12 +102,12 @@ describe("UpdateProductUseCase", () => {
     await expect(useCase.execute({ productId: product.getId().getValue(), price: -1, actor: adminActor })).rejects.toThrow("Value cannot be negative");
   });
 
-  it("should throw Unauthorized when actor is not ADMIN", async () => {
+  it("should throw Forbidden when actor is not ADMIN", async () => {
     const product = makeProduct();
     const useCase = new UpdateProductUseCase(fakeProductRepository([product]));
 
     await expect(
       useCase.execute({ productId: product.getId().getValue(), name: "Hacked", actor: { id: 'user-id', role: 'CUSTOMER' } })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 });

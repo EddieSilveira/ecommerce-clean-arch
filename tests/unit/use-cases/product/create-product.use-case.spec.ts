@@ -5,12 +5,13 @@ const adminActor = { id: 'admin-id', role: 'ADMIN' as const };
 const validInput = () => ({ name: "Pants", price: 9999, stock: 100, actor: adminActor });
 
 describe("CreateProductUseCase", () => {
-  it("should create a product and return the productId", async () => {
+  it("should return created product with id, name, price and stock", async () => {
     const useCase = new CreateProductUseCase(fakeProductRepository());
 
     const output = await useCase.execute(validInput());
 
-    expect(output.productId).toBeDefined();
+    expect(output).toMatchObject({ id: expect.any(String), name: "Pants", price: 9999, stock: 100 });
+    expect(output).not.toHaveProperty('productId');
   });
 
   it("should call repository save", async () => {
@@ -47,21 +48,21 @@ describe("CreateProductUseCase", () => {
     await expect(useCase.execute({ ...validInput(), stock: -1 })).rejects.toThrow("Stock cannot be negative");
   });
 
-  it("should return a valid UUID as productId", async () => {
+  it("should return a valid UUID as id", async () => {
     const useCase = new CreateProductUseCase(fakeProductRepository());
 
     const output = await useCase.execute(validInput());
 
-    expect(output.productId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(output.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 
-  it("should return unique productIds for different products", async () => {
+  it("should return unique ids for different products", async () => {
     const useCase = new CreateProductUseCase(fakeProductRepository());
 
     const first = await useCase.execute(validInput());
     const second = await useCase.execute(validInput());
 
-    expect(first.productId).not.toBe(second.productId);
+    expect(first.id).not.toBe(second.id);
   });
 
   it("should save the product with the correct data", async () => {
@@ -98,11 +99,11 @@ describe("CreateProductUseCase", () => {
     expect(saveSpy).not.toHaveBeenCalled();
   });
 
-  it("should throw Unauthorized when actor is not ADMIN", async () => {
+  it("should throw Forbidden when actor is not ADMIN", async () => {
     const useCase = new CreateProductUseCase(fakeProductRepository());
 
     await expect(
       useCase.execute({ name: "Laptop", price: 999, stock: 10, actor: { id: 'user-id', role: 'CUSTOMER' } })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 });

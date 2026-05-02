@@ -46,4 +46,14 @@ describe("ListProductsUseCase", () => {
 
     expect(output.products).toHaveLength(5);
   });
+
+  it("should return products with 'id' field, not 'productId'", async () => {
+    const products = [makeProduct("Shoe")];
+    const useCase = new ListProductsUseCase(fakeProductRepository(products));
+
+    const output = await useCase.execute({});
+
+    expect(output.products[0]).toHaveProperty('id');
+    expect(output.products[0]).not.toHaveProperty('productId');
+  });
 });

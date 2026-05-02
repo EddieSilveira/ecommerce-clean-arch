@@ -7,7 +7,7 @@ export interface ListProductsInput {
 
 export interface ListProductsOutput {
   products: {
-    productId: string;
+    id: string;
     name: string;
     price: number;
     stock: number;
@@ -27,7 +27,7 @@ export class ListProductsUseCase {
 
     return {
       products: items.map(p => ({
-        productId: p.getId().getValue(),
+        id: p.getId().getValue(),
         name: p.getName(),
         price: p.getPrice().getValue(),
         stock: p.getStock(),
