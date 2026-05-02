@@ -33,7 +33,7 @@ describe("GetOrderUseCase", () => {
     ).rejects.toThrow("Order not found");
   });
 
-  it("should throw Unauthorized when actor does not own the order", async () => {
+  it("should throw ForbiddenError when actor does not own the order", async () => {
     const { order } = makeOrder();
     const useCase = new GetOrderUseCase(fakeOrderRepository([order]));
 
@@ -42,6 +42,6 @@ describe("GetOrderUseCase", () => {
         orderId: order.getId().getValue(),
         actor: { id: 'other-user-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toMatchObject({ name: 'ForbiddenError' });
   });
 });

@@ -41,7 +41,7 @@ describe("CancelOrderUseCase", () => {
     ).rejects.toThrow("Cannot cancel a cancelled order");
   });
 
-  it("should throw Unauthorized when actor does not own the order", async () => {
+  it("should throw Forbidden when actor does not own the order", async () => {
     const { order } = makeOrder();
     const useCase = new CancelOrderUseCase(fakeOrderRepository([order]), fakeProductRepository());
 
@@ -50,7 +50,7 @@ describe("CancelOrderUseCase", () => {
         orderId: order.getId().getValue(),
         actor: { id: 'different-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 
   it("should restore product stock when order is cancelled", async () => {

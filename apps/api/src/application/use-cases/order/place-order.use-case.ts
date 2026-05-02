@@ -11,8 +11,18 @@ export interface PlaceOrderInput {
 }
 
 export interface PlaceOrderOutput {
-  orderId: string;
+  id: string;
+  userId: string;
+  status: string;
   total: number;
+  items: {
+    id: string;
+    productId: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    subtotal: number;
+  }[];
 }
 
 export class PlaceOrderUseCase {
@@ -52,8 +62,18 @@ export class PlaceOrderUseCase {
     await this.orderRepository.save(order);
 
     return {
-      orderId: order.getId().getValue(),
+      id: order.getId().getValue(),
+      userId: order.getUserId().getValue(),
+      status: order.getStatus(),
       total: order.getTotal().getValue(),
+      items: order.getItems().map(item => ({
+        id: item.getId().getValue(),
+        productId: item.getProductId().getValue(),
+        productName: item.getProductName(),
+        unitPrice: item.getUnitPrice().getValue(),
+        quantity: item.getQuantity(),
+        subtotal: item.getSubtotal().getValue(),
+      })),
     };
   }
 }

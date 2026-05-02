@@ -1,6 +1,6 @@
 import { IOrderRepository } from "@application/ports/order.repository";
 import { Actor } from "@domain/shared/role";
-import { UnauthorizedError } from "@domain/shared/errors/unauthorized.error";
+import { ForbiddenError } from "@domain/shared/errors/forbidden.error";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 export interface GetOrderInput {
@@ -32,7 +32,7 @@ export class GetOrderUseCase {
     const order = await this.orderRepository.findById(UUID.create(input.orderId));
     if (!order) throw new Error("Order not found");
 
-    if (input.actor.id !== order.getUserId().getValue()) throw new UnauthorizedError();
+    if (input.actor.id !== order.getUserId().getValue()) throw new ForbiddenError();
 
     return {
       id: order.getId().getValue(),

@@ -26,11 +26,15 @@ describe("PlaceOrderUseCase", () => {
       items: [{ productId: product.getId().getValue(), quantity: 2 }],
     });
 
-    expect(output.orderId).toBeDefined();
+    expect(output.id).toBeDefined();
+    expect(output.userId).toBe(user.getId().getValue());
+    expect(output.status).toBe(OrderStatus.PENDING);
     expect(output.total).toBe(100);
+    expect(output.items).toHaveLength(1);
+    expect(output.items[0]).toMatchObject({ productId: product.getId().getValue(), quantity: 2 });
+    expect(output).not.toHaveProperty('orderId');
     expect(product.getStock()).toBe(8);
     expect(orders).toHaveLength(1);
-    expect(orders[0]!.getStatus()).toBe(OrderStatus.PENDING);
   });
 
   it("should throw if user is not found", async () => {
