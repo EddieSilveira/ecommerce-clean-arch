@@ -10,7 +10,9 @@ export interface CreateUserInput {
 }
 
 export interface CreateUserOutput {
-  userId: string;
+  id: string;
+  name: string;
+  email: string;
 }
 
 export class CreateUserUseCase {
@@ -34,6 +36,6 @@ export class CreateUserUseCase {
 
     await this.userRepository.save(user);
 
-    return { userId: user.getId().getValue() };
+    return { id: user.getId().getValue(), name: user.getName(), email: user.getEmail() };
   }
 }

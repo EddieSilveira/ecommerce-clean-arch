@@ -1,6 +1,6 @@
 import { IUserRepository } from "@application/ports/user.repository";
 import { Actor } from "@domain/shared/role";
-import { UnauthorizedError } from "@domain/shared/errors/unauthorized.error";
+import { ForbiddenError } from "@domain/shared/errors/forbidden.error";
 import { UUID } from "@domain/shared/value-objects/uuid.vo";
 
 export interface DeleteUserInput {
@@ -21,7 +21,7 @@ export class DeleteUserUseCase {
 
     const isOwner = input.actor.id === input.userId;
     const isAdmin = input.actor.role === 'ADMIN';
-    if (!isOwner && !isAdmin) throw new UnauthorizedError();
+    if (!isOwner && !isAdmin) throw new ForbiddenError();
 
     await this.userRepository.delete(user.getId());
 

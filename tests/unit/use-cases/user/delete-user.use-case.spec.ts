@@ -44,7 +44,7 @@ describe("DeleteUserUseCase", () => {
     expect(users).toHaveLength(0);
   });
 
-  it("should throw Unauthorized when CUSTOMER tries to delete another user", async () => {
+  it("should throw Forbidden when CUSTOMER tries to delete another user", async () => {
     const user = makeUser();
     const useCase = new DeleteUserUseCase(fakeUserRepository([user]));
 
@@ -53,6 +53,6 @@ describe("DeleteUserUseCase", () => {
         userId: user.getId().getValue(),
         actor: { id: 'different-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 });

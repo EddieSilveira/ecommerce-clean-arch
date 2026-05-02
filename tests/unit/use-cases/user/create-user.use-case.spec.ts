@@ -5,12 +5,13 @@ import { User } from "@domain/user/entities/user.entity";
 const validInput = () => ({ name: "John Doe", email: "john@example.com", password: "StrongP@ss1" });
 
 describe("CreateUserUseCase", () => {
-  it("should create a user and return the userId", async () => {
+  it("should return created user with id, name and email", async () => {
     const useCase = new CreateUserUseCase(fakeUserRepository(), fakeHasher());
 
     const output = await useCase.execute(validInput());
 
-    expect(output.userId).toBeDefined();
+    expect(output).toMatchObject({ id: expect.any(String), name: "John Doe", email: "john@example.com" });
+    expect(output).not.toHaveProperty('userId');
   });
 
   it("should save user with hashed password", async () => {

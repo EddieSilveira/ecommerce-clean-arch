@@ -31,7 +31,7 @@ describe("GetUserUseCase", () => {
     expect(output.id).toBe(user.getId().getValue());
   });
 
-  it("should throw Unauthorized when CUSTOMER accesses another user", async () => {
+  it("should throw Forbidden when CUSTOMER accesses another user", async () => {
     const user = makeUser();
     const useCase = new GetUserUseCase(fakeUserRepository([user]));
 
@@ -40,7 +40,7 @@ describe("GetUserUseCase", () => {
         userId: user.getId().getValue(),
         actor: { id: 'different-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 
   it("should throw if user is not found", async () => {

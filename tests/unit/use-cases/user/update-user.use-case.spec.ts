@@ -65,7 +65,7 @@ describe("UpdateUserUseCase", () => {
       .rejects.toThrow("Invalid email");
   });
 
-  it("should throw Unauthorized when actor is not the owner", async () => {
+  it("should throw Forbidden when actor is not the owner", async () => {
     const user = makeUser();
     const useCase = new UpdateUserUseCase(fakeUserRepository([user]), fakeHasher());
 
@@ -75,6 +75,6 @@ describe("UpdateUserUseCase", () => {
         name: "Hacker",
         actor: { id: 'different-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 });
