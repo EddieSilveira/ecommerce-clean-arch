@@ -47,7 +47,7 @@ describe("ProcessPaymentUseCase", () => {
     ).rejects.toThrow("Order is not pending");
   });
 
-  it("should throw Unauthorized when actor does not own the order", async () => {
+  it("should throw Forbidden when actor does not own the order", async () => {
     const order = makePendingOrder();
     const useCase = new ProcessPaymentUseCase(fakeOrderRepository([order]), fakePaymentRepository());
 
@@ -57,7 +57,7 @@ describe("ProcessPaymentUseCase", () => {
         amount: 150,
         actor: { id: 'different-user-id', role: 'CUSTOMER' },
       })
-    ).rejects.toThrow("Unauthorized");
+    ).rejects.toThrow("Forbidden");
   });
 
   it("should throw PaymentAmountMismatchError when amount does not match order total", async () => {
