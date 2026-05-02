@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 type Props = { product: Product }
 
 const formatPrice = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export function ProductCard({ product }: Props) {
   const { add } = useCart()

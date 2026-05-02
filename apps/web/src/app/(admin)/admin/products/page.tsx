@@ -37,7 +37,7 @@ type FormInput = { name: string; price: string; stock: string }
 type FormData = { name: string; price: number; stock: number }
 
 const formatPrice = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export default function AdminProductsPage() {
   const qc = useQueryClient()
@@ -133,7 +133,7 @@ export default function AdminProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Preço (centavos)</Label>
+                  <Label>Preço</Label>
                   <Input type="number" placeholder="9990" {...register('price')} />
                   {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                 </div>

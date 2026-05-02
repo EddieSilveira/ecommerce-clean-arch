@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { buttonVariants } from '@/components/ui/button'
 import { ProductGrid } from '@/components/products/ProductGrid'
+import { HeroActions } from '@/components/home/HeroActions'
 import type { ProductsResponse } from '@/lib/types'
 
 async function getFeaturedProducts() {
@@ -34,20 +34,7 @@ export default async function HomePage() {
         <p className="text-muted-foreground max-w-md mx-auto">
           Produtos selecionados com os mais altos padrões de qualidade.
         </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link
-            href="/products"
-            className={buttonVariants({ size: 'lg', className: 'bg-amber-500 hover:bg-amber-400 text-black font-semibold' })}
-          >
-            Ver produtos
-          </Link>
-          <Link
-            href="/auth/sign-up"
-            className={buttonVariants({ size: 'lg', variant: 'outline', className: 'border-[#2a2a2a] hover:border-white' })}
-          >
-            Criar conta
-          </Link>
-        </div>
+        <HeroActions />
       </section>
 
       {/* Featured */}

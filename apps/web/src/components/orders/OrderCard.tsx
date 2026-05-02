@@ -4,7 +4,7 @@ import { OrderStatusBadge } from './OrderStatusBadge'
 import type { OrderSummary } from '@/lib/types'
 
 const formatPrice = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export function OrderCard({ order }: { order: OrderSummary }) {
   return (

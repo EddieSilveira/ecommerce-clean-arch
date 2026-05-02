@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import type { Order } from '@/lib/types'
 
 const formatPrice = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export default function CheckoutPage() {
   const { items, clear } = useCart()

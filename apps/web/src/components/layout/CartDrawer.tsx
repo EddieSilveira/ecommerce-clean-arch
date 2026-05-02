@@ -28,7 +28,7 @@ export function CartDrawer({ open, onClose }: Props) {
   }
 
   const formatPrice = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>

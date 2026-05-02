@@ -20,7 +20,7 @@ import {
 import Link from 'next/link'
 
 const formatPrice = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -88,10 +88,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
         {order.status === 'PENDING' && (
           <AlertDialog>
-            <AlertDialogTrigger>
-              <Button variant="destructive" disabled={cancelling}>
-                Cancelar pedido
-              </Button>
+            <AlertDialogTrigger render={<Button variant="destructive" disabled={cancelling} />}>
+              Cancelar pedido
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[#1a1a1a] border-[#2a2a2a]">
               <AlertDialogHeader>
